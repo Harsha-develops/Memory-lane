@@ -1,0 +1,92 @@
+{
+  "name": "thing-sorted",
+  "version": "0.10.0",
+  "private": true,
+  "description": "A private Windows home for your photo memories",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.electron.json && vite build",
+    "start": "node scripts/start.cjs",
+    "dev": "npm run build && npm start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "playwright test",
+    "package": "npm run build && electron-builder --win nsis --x64"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "45.1.0",
+    "electron-builder": "26.18.0",
+    "eslint": "10.14.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5"
+  },
+  "author": "thing sorted",
+  "build": {
+    "appId": "com.thingsorted.desktop",
+    "productName": "thing sorted",
+    "directories": {
+      "output": "../release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "public/brand/logo.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/thing-backend",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../packaging/notices",
+        "to": "notices",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh",
+      "runAfterFinish": false,
+      "artifactName": "thing-sorted-${version}-windows-x64-setup.${ext}"
+    },
+    "publish": null
+  }
+}

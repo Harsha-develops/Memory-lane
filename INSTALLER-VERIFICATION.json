@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-01",
+  "version": "0.6.0",
+  "installerSha256": "727f0499c5bff50c8ec12da211bddfda095ad2ba3a7beca98937bb6b175ec373",
+  "installerBytes": 158910096,
+  "host": "Windows 11 Home x64, build 26300",
+  "perUserInstall": true,
+  "startMenuShortcut": true,
+  "executableProductName": "thing sorted",
+  "backendTestsPassed": 53,
+  "installedApplicationTestsPassed": 2,
+  "silentUninstallExitCode": 0,
+  "profileMarkerPreserved": true,
+  "existingCatalogHashUnchanged": true,
+  "reinstallExitCode": 0,
+  "installedPath": "%LOCALAPPDATA%\\Programs\\thing sorted\\thing sorted.exe",
+  "cleanMachineVerified": false,
+  "interactiveRecycleBinPathVerified": false,
+  "signed": false
+}

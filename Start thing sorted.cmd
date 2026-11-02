@@ -1,0 +1,5 @@
+@echo off
+setlocal
+cd /d "%~dp0desktop"
+call npm.cmd start
+if errorlevel 1 pause
