@@ -10,7 +10,7 @@ const child = spawn(require('electron'), [path.resolve(__dirname, '..')], {
   shell: false,
 });
 child.on('error', () => {
-  console.error('Could not launch thing sorted. Run npm.cmd ci in the desktop folder.');
+  console.error('Could not launch Memory Lane. Run npm.cmd ci in the desktop folder.');
   process.exitCode = 1;
 });
 child.on('exit', (code) => {

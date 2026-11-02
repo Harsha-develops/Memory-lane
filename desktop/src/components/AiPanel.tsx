@@ -107,7 +107,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
     >
       <div className="dialog-heading">
         <div>
-          <div className="eyebrow">YOUR PROVIDER · YOUR CHOICE</div>
+          <div className="eyebrow">Your Provider · Your Choice</div>
           <h2 id="ai-title">A little extra inspiration.</h2>
         </div>
         <button className="icon-button" aria-label="Close AI tools" onClick={onClose}>
@@ -309,7 +309,7 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
       {result && (
         <section className="ai-result" aria-label="AI suggestions">
           <h3>Your inspiration</h3>
-          <p>{result}</p>
+          <p className={task === 'caption' ? 'caption-result' : undefined}>{result}</p>
           <small>
             AI suggestions can be inaccurate. Review before using them. This result is cleared when
             you close this panel.

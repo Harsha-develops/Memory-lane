@@ -1,3 +1,4 @@
+import { MemoryText } from './MemoryText';
 import { CategoryReview } from './CategoryReview';
 import { tr } from '../i18n';
 import { useEffect, useMemo, useState } from 'react';
@@ -131,11 +132,11 @@ export function Library({
     <section className="library-page page-enter" aria-labelledby="library-title">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{tr('YOUR PRIVATE COLLECTION')}</div>
+          <div className="eyebrow">{tr('Your Private Collection')}</div>
           <h1 id="library-title">{tr('Small moments. Beautifully kept.')}</h1>
           <p className="library-subtitle">
             {total.toLocaleString()} {total === 1 ? 'photo' : 'photos'}
-            {tr('\u00B7 originals safely copied, memories close by.')}
+            <MemoryText>{tr('\u00B7 originals safely copied, memories close by.')}</MemoryText>
           </p>
         </div>
         <button

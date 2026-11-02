@@ -26,7 +26,7 @@ test('5000 photos use a bounded gallery and a capped, keyboard-accessible orbit'
       if (response.url().startsWith('thing://app/photos/') && response.status() !== 200)
         failedImages.push(response.status());
     });
-    await expect(page.getByRole('status')).toHaveText('HEALTH OK', { timeout: 45_000 });
+    await expect(page.getByRole('status')).toHaveText('Health OK', { timeout: 45_000 });
     const started = Date.now();
     await page.getByRole('button', { name: 'All photos', exact: true }).click();
     await expect(page.locator('.library-subtitle')).toContainText('5,000 photos');

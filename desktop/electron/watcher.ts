@@ -90,14 +90,14 @@ export class FolderWatcher {
             'Import photos and choose your library before enabling a watched folder.',
           );
         const selected = await dialog.showOpenDialog(this.window, {
-          title: 'Watch this folder while thing sorted is open (subfolders excluded)',
+          title: 'Watch this folder while Memory Lane is open (subfolders excluded)',
           properties: ['openDirectory'],
         });
         if (selected.canceled || !selected.filePaths[0]) return this.status();
         const folder = await sourcePath(selected.filePaths[0]);
         this.validate(folder, library.path);
         const answer = await dialog.showMessageBox(this.window, {
-          title: 'thing sorted',
+          title: 'Memory Lane',
           type: 'question',
           message:
             'Automatically copy supported photos already in this folder, and future additions, while the app is open? Files must remain stable for at least six seconds. Subfolders and temporary files are ignored. Source files are never changed.',

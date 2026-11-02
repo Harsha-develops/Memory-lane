@@ -42,7 +42,7 @@ const steps = [
 export function Roadmap() {
   return (
     <section className="roadmap" aria-labelledby="roadmap-title">
-      <div className="eyebrow">THE BUILD JOURNEY</div>
+      <div className="eyebrow">The Build Journey</div>
       <h1 id="roadmap-title">Good things take shape.</h1>
       <p className="section-intro">
         One tested milestone at a time. Here’s what’s here, and what comes next.

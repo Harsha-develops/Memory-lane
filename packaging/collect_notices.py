@@ -17,7 +17,7 @@ names = re.findall(
 index = [
     "# Bundled runtime dependencies",
     "",
-    "These notices describe third-party software bundled with thing sorted. Upstream license terms apply.",
+    "These notices describe third-party software bundled with Memory Lane. Upstream license terms apply.",
     "",
 ]
 for name in names:
@@ -49,7 +49,7 @@ if python_license.is_file():
 index.extend(
     [
         "Electron and Chromium license texts are installed beside the desktop executable.",
-        "The icon was supplied by the product owner.",
+        "The icon was supplied by the product owner. Athiti and Birthstone font licenses are included as Athiti-OFL.txt and Birthstone-OFL.txt.",
         "",
     ]
 )

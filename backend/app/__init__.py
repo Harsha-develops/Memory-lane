@@ -1,3 +1,3 @@
-"""thing sorted local backend."""
+"""Memory Lane local backend."""
 
-__version__ = "0.10.0"
+__version__ = "0.11.0"

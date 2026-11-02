@@ -107,7 +107,7 @@
   display: block;
   color: #444a3b;
   font-family: Georgia, serif;
-  font-size: 8px;
+  font-size: 12px;
   font-style: italic;
   padding-top: 7px;
   text-align: center;
@@ -229,7 +229,7 @@
   width: 100%;
   text-align: center;
   color: var(--faint);
-  font-size: 6px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 @keyframes orbit-turn {

@@ -29,7 +29,7 @@ test('trips, bulk assignment, orbit, metadata, similarity, privacy, and persiste
     let page = await app.firstWindow();
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    await expect(page.getByRole('status')).toHaveText('HEALTH OK', { timeout: 45_000 });
+    await expect(page.getByRole('status')).toHaveText('Health OK', { timeout: 45_000 });
     // Fixture filenames are discovered by the test harness, never passed by a renderer path.
     const { readdir } = await import('node:fs/promises');
     const files = (await readdir(source)).map((name) => join(source, name));

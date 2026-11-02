@@ -87,7 +87,7 @@ const english: Record<string, string> = {
   forgetGps: 'Forget stored locations',
   offline: 'Offline & private',
   memories: 'Memories',
-  welcome: 'Welcome to thing sorted',
+  welcome: 'Welcome to Memory Lane',
   library: 'Your private collection',
   empty: 'Your next chapter starts here.',
   noMatch: 'No memories match these filters.',

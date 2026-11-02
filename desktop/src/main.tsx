@@ -4,6 +4,7 @@ import { App } from './App';
 import './styles.css';
 import './styles-premium.css';
 import './styles-collections.css';
+import './styles-memory-lane.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

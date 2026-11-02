@@ -1,3 +1,4 @@
+import { MemoryText } from './components/MemoryText';
 import { AiPanel } from './components/AiPanel';
 import { tr } from './i18n';
 import { flushSync } from 'react-dom';
@@ -50,7 +51,7 @@ export function App() {
   );
   const [status, setStatus] = useState<AppStatus>({
     phase: 'starting',
-    appVersion: '0.10.0',
+    appVersion: '0.11.0',
     backendVersion: null,
     diagnosticCode: null,
   });
@@ -111,7 +112,7 @@ export function App() {
         if (alive)
           setStatus({
             phase: 'failed',
-            appVersion: '0.10.0',
+            appVersion: '0.11.0',
             backendVersion: null,
             diagnosticCode: 'DESKTOP_BRIDGE_UNAVAILABLE',
           });
@@ -162,15 +163,16 @@ export function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">
-            <img src="/brand/logo.png" alt="thing sorted logo" />
+            <img src="/brand/logo.png" alt="Memory Lane logo" />
           </div>
           <div>
-            thing sorted<span>{tr('a home for your moments')}</span>
+            <MemoryText>Memory Lane</MemoryText>
+            <span>{tr('a home for your moments')}</span>
           </div>
         </div>
         <div className="workspace-label">
-          {tr('YOUR SPACE')}
-          <span>{tr('PERSONAL')}</span>
+          {tr('Your Space')}
+          <span>{tr('Personal')}</span>
         </div>
         <nav aria-label={tr('Main navigation')}>
           <button
@@ -230,7 +232,7 @@ export function App() {
             <p>
               {tr('Offline by design.')}
               <br />
-              {tr('Your memories stay with you.')}
+              <MemoryText>{tr('Your memories stay with you.')}</MemoryText>
             </p>
             <span className="private-line" />
           </div>
@@ -317,22 +319,24 @@ export function App() {
             <>
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">{tr('LESS CLUTTER. MORE MEMORIES.')}</div>
+                  <div className="eyebrow">
+                    <MemoryText>{tr('Less Clutter. More Memories.')}</MemoryText>
+                  </div>
                   <h1>{tr('Welcome to your little universe.')}</h1>
                 </div>
-                <span className="version-label">{tr('YOUR COLLECTION / 06')}</span>
+                <span className="version-label">{tr('Your Collection')}</span>
               </div>
-              <section className="hero" aria-label={tr('Welcome to thing sorted')}>
+              <section className="hero" aria-label={tr('Welcome to Memory Lane')}>
                 <div className="hero-copy">
                   <div className="pill">
                     <span />
-                    {tr('A FRESH START')}
+                    {tr('A Fresh Start')}
                   </div>
                   <h2>
                     {tr('Life happens.')}
                     <br />
                     {tr('Keep it')}
-                    <em>{tr('sorted.')}</em>
+                    <em>{tr('Sorted.')}</em>
                   </h2>
                   <p>
                     {tr('A thousand little moments.')}
@@ -356,7 +360,7 @@ export function App() {
               </section>
               <div className="section-heading">
                 <h2>{tr('A thoughtful home for every photo.')}</h2>
-                <span>{tr('BUILT AROUND YOU')}</span>
+                <span>{tr('Built Around You')}</span>
               </div>
               <div className="feature-grid">
                 <article className="feature-card">
@@ -370,7 +374,7 @@ export function App() {
                       'From phone snapshots to camera originals. Import RAW, HEIC, TIFF, and everyday formats into your private collection.',
                     )}
                   </p>
-                  <span className="feature-meta">{tr('IMPORT \u00B7 READY FOR YOUR PHOTOS')}</span>
+                  <span className="feature-meta">{tr('Import \u00B7 Ready For Your Photos')}</span>
                 </article>
                 <article className="feature-card">
                   <div className="feature-icon green">
@@ -383,7 +387,7 @@ export function App() {
                       'Explore your memories in playful orbits, thoughtful galleries, and trips that tell a story.',
                     )}
                   </p>
-                  <span className="feature-meta">{tr('TRIPS \u00B7 ORBITS \u00B7 GALLERIES')}</span>
+                  <span className="feature-meta">{tr('Trips \u00B7 Orbits \u00B7 Galleries')}</span>
                 </article>
                 <article className="feature-card">
                   <div className="feature-icon blue">
@@ -396,7 +400,7 @@ export function App() {
                       'English interface. A lighter look and motion controls are in Preferences.',
                     )}
                   </p>
-                  <span className="feature-meta">{tr('PERSONAL, BY DESIGN')}</span>
+                  <span className="feature-meta">{tr('Personal, By Design')}</span>
                 </article>
               </div>
               <section className="foundation-status" aria-label={tr('Application connection')}>
@@ -421,10 +425,10 @@ export function App() {
                 </div>
                 <span className={`connection-tag ${status.phase}`} role="status">
                   {status.phase === 'ready'
-                    ? 'HEALTH OK'
+                    ? 'Health OK'
                     : status.phase === 'starting'
-                      ? 'CONNECTING'
-                      : 'OFFLINE ERROR'}
+                      ? 'Connecting'
+                      : 'Offline Error'}
                 </span>
               </section>
             </>
@@ -464,8 +468,9 @@ export function App() {
           )}
           <footer>
             <span>
-              thing sorted <span className="footer-dot">·</span>
+              <MemoryText>Memory Lane</MemoryText> <span className="footer-dot">·</span>
               {tr('a little order, a lot of life.')}
+              <small className="creator-credit">Created By TheEpicMonolouge</small>
             </span>
             <span>
               v{status.appVersion} <span className="footer-dot">/</span>

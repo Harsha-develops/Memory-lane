@@ -1,3 +1,11 @@
+# 0.11.0 — Memory Lane
+
+- Rename the app and installer, with the supplied logo and Windows icon.
+- Add bundled Athiti and Birthstone fonts, larger body text, title-case UI, stronger borders and layered shadows.
+- Improve card spacing, narrow-window layout, and sidebar scrolling.
+- Add Created By TheEpicMonolouge to the footer.
+- Preserve app identity, library paths, settings, and credentials for existing installations.
+
 # 0.10.0 working release
 
 - Replaced manual category editing/review with selected-category AI classification and automatic, multiple album memberships.

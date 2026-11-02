@@ -1,3 +1,4 @@
+import { MemoryText } from './MemoryText';
 import { tr } from '../i18n';
 import { useEffect, useState } from 'react';
 import type { OrbitData } from '../../shared/catalog';
@@ -32,9 +33,11 @@ export function Orbit({ onGallery }: { onGallery: () => void }) {
     <section className="page-enter">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{tr('A UNIVERSE OF LITTLE MOMENTS')}</div>
+          <div className="eyebrow">{tr('A Universe Of Little Moments')}</div>
           <h1>{tr('Everything comes full circle.')}</h1>
-          <p className="library-subtitle">{tr('Follow a memory. See where it takes you.')}</p>
+          <p className="library-subtitle">
+            <MemoryText>{tr('Follow a memory. See where it takes you.')}</MemoryText>
+          </p>
         </div>
         <label className="field-label">
           {tr('Arrange by')}
@@ -76,7 +79,7 @@ export function Orbit({ onGallery }: { onGallery: () => void }) {
             {data.total.toLocaleString()}
           </text>
           <text x="450" y="399" textAnchor="middle" className="orbit-caption">
-            {tr('MEMORIES')}
+            {tr('Memories')}
           </text>
           {data.rings.map((ring, ringIndex) =>
             ring.photos.map((item, itemIndex) => {
@@ -125,7 +128,7 @@ export function Orbit({ onGallery }: { onGallery: () => void }) {
           )}
         </svg>
         <div className="orbit-legend">
-          <div className="eyebrow">{tr('YOUR CONSTELLATIONS')}</div>
+          <div className="eyebrow">{tr('Your Constellations')}</div>
           {data.rings.map((ring, index) => (
             <div className="legend-row" key={ring.label}>
               <span className="legend-number">0{index + 1}</span>

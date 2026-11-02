@@ -44,7 +44,7 @@ export function Similar() {
     <section className="page-enter">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{tr('A LITTLE LESS DOUBLE-TAKE')}</div>
+          <div className="eyebrow">{tr('A Little Less Double-Take')}</div>
           <h1>{tr('Some moments look familiar.')}</h1>
           <p className="library-subtitle">
             {tr('Exact copies are caught during import. You decide about lookalikes.')}

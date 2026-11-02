@@ -139,7 +139,7 @@ export function PhotoViewer({
               </button>
             </div>
             <aside className="photo-information">
-              <div className="eyebrow">{tr('THE DETAILS')}</div>
+              <div className="eyebrow">{tr('The Details')}</div>
               <h3>{tr('A moment, remembered.')}</h3>
               <PhotoCategories key={photo.id} id={photo.id} onChanged={() => onChanged?.()} />
               <dl>

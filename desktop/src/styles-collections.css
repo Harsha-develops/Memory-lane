@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--muted);
   min-width: 0;
@@ -17,7 +17,7 @@
   color: var(--text);
   padding: 11px 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
 }
 .field-label input:focus,
 .field-label select:focus {
@@ -51,14 +51,14 @@
   padding: 12px;
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
 }
 .inline-message {
   background: var(--panel-raised);
   padding: 14px 18px;
   border-left: 3px solid var(--gold);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .selection-toolbar {
   display: flex;
@@ -77,7 +77,7 @@
 }
 .gallery-hint {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   margin: 18px 0;
 }
 .virtual-scroller {
@@ -226,7 +226,7 @@
   border: 1px solid #c69a6455;
   padding: 7px 12px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .trip-open h2 {
   padding: 0 20px;
@@ -236,7 +236,7 @@
 }
 .trip-open p {
   padding: 0 20px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 .trip-actions {
@@ -295,17 +295,17 @@
 }
 .photo-information dt {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   margin: 13px 0 4px;
 }
 .photo-information dd {
-  font-size: 12px;
+  font-size: 14px;
   margin: 0;
   overflow-wrap: anywhere;
 }
 .viewer-note {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
 }
 .memory-universe {
@@ -341,7 +341,7 @@
 }
 .orbit-caption {
   fill: var(--gold);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.8px;
 }
 .orbit-photo {
@@ -379,25 +379,25 @@
 }
 .legend-number {
   color: var(--gold);
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid var(--line);
   border-radius: 50%;
   padding: 9px;
 }
 .legend-row strong {
   display: block;
-  font-size: 13px;
+  font-size: 15px;
   overflow-wrap: anywhere;
 }
 .legend-row small {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
   margin-top: 6px;
 }
 .orbit-description,
 .orbit-hover {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   color: var(--muted);
   margin: 0;
@@ -415,7 +415,7 @@
 }
 .review-explainer p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.8;
   max-width: 740px;
 }
@@ -460,7 +460,7 @@
 .pair-photos span {
   display: block;
   padding: 12px;
-  font-size: 12px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
 .pair-actions {
@@ -472,7 +472,7 @@
 }
 .pair-actions span {
   flex: 1;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 .preferences {
@@ -538,11 +538,11 @@
 }
 .maintenance-settings h3 {
   margin: 0 0 10px;
-  font-size: 16px;
+  font-size: 18px;
 }
 .maintenance-settings p {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .settings-actions {
@@ -558,7 +558,7 @@
   padding: 12px;
   background: var(--panel-raised);
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
 .maintenance-status span {
@@ -569,7 +569,7 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 15px;
-  font-size: 12px;
+  font-size: 14px;
 }
 .preferences .setting {
   gap: 20px;
@@ -617,7 +617,7 @@
 .ai-corner span {
   margin-left: auto;
   color: var(--gold);
-  font-size: 10px;
+  font-size: 12px;
 }
 .ai-panel {
   max-height: 88vh;
@@ -628,7 +628,7 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   color: var(--gold);
-  font-size: 12px;
+  font-size: 14px;
   margin-block: 18px;
 }
 .ai-form {
@@ -646,7 +646,7 @@
 .ai-form label {
   display: grid;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   margin-block: 14px;
 }
 .ai-form input:not([type='checkbox']),
@@ -666,7 +666,7 @@
   min-height: 100px;
 }
 .ai-form p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
 }
 .ai-form .ai-consent {
@@ -687,7 +687,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.8;
-  font-size: 14px;
+  font-size: 16px;
   user-select: text;
 }
 .ai-result small {
@@ -703,7 +703,7 @@
   display: flex;
   gap: 10px;
   margin-block: 14px;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
   align-items: flex-start;
 }
@@ -723,7 +723,7 @@
 .category-results label {
   display: grid;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
   margin-block: 10px;
 }
 .category-results strong {
@@ -772,7 +772,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 14px;
   text-transform: capitalize;
 }
 .category-review .category-choice-grid input {
@@ -808,7 +808,7 @@
   border-radius: 9px;
 }
 .ai-album span {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 .ai-album:hover {

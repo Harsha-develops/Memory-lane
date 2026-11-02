@@ -1,3 +1,4 @@
+import { MemoryText } from './MemoryText';
 import { AiAlbums } from './AiAlbums';
 import { tr } from '../i18n';
 import { useEffect, useState } from 'react';
@@ -49,9 +50,11 @@ export function Trips({
     <section className="page-enter collections-page">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">{tr('CHAPTERS OF YOUR LIFE')}</div>
+          <div className="eyebrow">{tr('Chapters Of Your Life')}</div>
           <h1>{tr('Places. People. Little adventures.')}</h1>
-          <p className="library-subtitle">{tr('Give your memories a place to belong.')}</p>
+          <p className="library-subtitle">
+            <MemoryText>{tr('Give your memories a place to belong.')}</MemoryText>
+          </p>
         </div>
       </div>
       <AiAlbums onOpen={onOpenAlbum} />
@@ -126,7 +129,9 @@ export function Trips({
       {trips.length === 0 && (
         <div className="library-empty">
           <Icon name="folder" />
-          <h2>{tr('Make a little room for a big memory.')}</h2>
+          <h2>
+            <MemoryText>{tr('Make a little room for a big memory.')}</MemoryText>
+          </h2>
           <p>{tr('Create a trip above, then select photos in All photos to add them.')}</p>
         </div>
       )}

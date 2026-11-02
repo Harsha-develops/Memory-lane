@@ -33,7 +33,7 @@ test('native import, secure gallery, themes, preview, duplicates and restart per
     await expect(
       page.getByRole('heading', { name: 'Welcome to your little universe.' }),
     ).toBeVisible();
-    await expect(page.getByRole('status')).toHaveText('HEALTH OK', { timeout: 30_000 });
+    await expect(page.getByRole('status')).toHaveText('Health OK', { timeout: 30_000 });
     expect(
       await page.locator('.ring-outer').evaluate((node) => getComputedStyle(node).animationName),
     ).toBe('orbit-turn');

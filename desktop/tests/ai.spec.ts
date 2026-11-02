@@ -61,7 +61,7 @@ test('English-only UI, encrypted user key, consent, generation, errors, cancella
   let app = await electron.launch(launch);
   try {
     let page = await app.firstWindow();
-    await expect(page.getByRole('status')).toHaveText('HEALTH OK', { timeout: 30_000 });
+    await expect(page.getByRole('status')).toHaveText('Health OK', { timeout: 30_000 });
     await page.evaluate(() => localStorage.setItem('thing-language', 'ar'));
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');

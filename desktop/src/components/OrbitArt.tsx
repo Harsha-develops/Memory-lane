@@ -35,7 +35,7 @@ export function OrbitArt() {
         </div>
         <span>{tr('days worth keeping')}</span>
       </div>
-      <div className="orbit-label">{tr('A LITTLE ORDER. A LOT OF LIFE.')}</div>
+      <div className="orbit-label">{tr('A Little Order. A Lot Of Life.')}</div>
     </div>
   );
 }

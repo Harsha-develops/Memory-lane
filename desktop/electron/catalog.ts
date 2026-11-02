@@ -116,7 +116,7 @@ export function installCatalog(window: BrowserWindow, backend: Backend): void {
             : 'Group all unassigned photos into editable trips by their recorded dates? File-modified and import dates may not reflect when a photo was taken.';
       const result = await dialog.showMessageBox(window, {
         type: 'question',
-        title: 'thing sorted',
+        title: 'Memory Lane',
         message: text,
         buttons: ['Cancel', 'Continue'],
         defaultId: 0,

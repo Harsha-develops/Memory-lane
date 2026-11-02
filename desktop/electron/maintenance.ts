@@ -22,7 +22,7 @@ export function installMaintenance(window: BrowserWindow, backend: Backend): voi
     try {
       const confirmation = await dialog.showMessageBox(window, {
         type: 'question',
-        title: 'thing sorted',
+        title: 'Memory Lane',
         message:
           action === 'backup'
             ? 'Create a local backup containing copied originals, filenames, trips, dates and stored GPS coordinates? Original files may contain location metadata even when location display is hidden. Previews are regenerated on restore. Nothing is uploaded.'
@@ -36,7 +36,7 @@ export function installMaintenance(window: BrowserWindow, backend: Backend): voi
       let source: string | undefined;
       if (action === 'restore') {
         const chosen = await dialog.showOpenDialog(window, {
-          title: 'Choose a thing sorted backup folder',
+          title: 'Choose a Memory Lane backup folder',
           properties: ['openDirectory'],
         });
         if (chosen.canceled || !chosen.filePaths[0])

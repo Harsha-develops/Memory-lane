@@ -1,0 +1,390 @@
+@font-face {
+  font-family: 'Athiti';
+  src: url('/fonts/Athiti-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Athiti';
+  src: url('/fonts/Athiti-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Athiti';
+  src: url('/fonts/Athiti-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Athiti';
+  src: url('/fonts/Athiti-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Birthstone';
+  src: url('/fonts/Birthstone-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --display-font: 'Athiti', 'Segoe UI', sans-serif;
+  font-family: var(--display-font);
+  --line: #63434f;
+  --surface-shadow: 0 12px 30px #09040736, 0 2px 5px #09040722;
+  font-size: 16px;
+}
+:root[data-theme='light'] {
+  --line: #bda08e;
+  --surface-shadow: 0 12px 30px #57223412, 0 2px 5px #5722340d;
+}
+body {
+  line-height: 1.55;
+  text-transform: capitalize;
+}
+/* Keep user-authored content and machine identifiers exactly as entered. */
+input,
+textarea,
+code,
+pre,
+.photo-caption,
+.photo-information dd,
+.trip-open h2,
+.creator-credit {
+  text-transform: none;
+}
+h1,
+h2,
+.brand > div:last-child,
+.hero h2 em {
+  font-family: var(--display-font);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+h1 {
+  font-size: clamp(30px, 2.7vw, 40px);
+  line-height: 1.25;
+}
+.hero h2 {
+  font-size: clamp(46px, 4.2vw, 64px);
+  line-height: 1.16;
+}
+.hero h2 em {
+  font-style: normal;
+}
+.app-shell {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+.sidebar {
+  padding: 26px 18px 18px;
+  overflow-y: auto;
+  min-height: 0;
+  border-right-width: 2px;
+}
+.brand {
+  gap: 10px;
+  font-size: 28px;
+}
+.brand span {
+  font-family: var(--display-font);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--gold);
+  box-shadow: 0 4px 16px #0002;
+}
+.brand-mark img {
+  transform: scale(1.4);
+}
+.workspace-label {
+  margin-top: 30px;
+  letter-spacing: 0.7px;
+}
+.nav-item {
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-width: 2px;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 20px;
+}
+.private-card {
+  margin-block: 12px;
+  padding: 16px;
+}
+.private-card p {
+  line-height: 1.6;
+}
+.topbar {
+  border-bottom-width: 2px;
+}
+main {
+  padding: 32px 32px 0;
+  width: 100%;
+}
+.hero-copy {
+  padding: 32px;
+}
+.hero-copy > p {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.hero-footnote {
+  font-size: 12px;
+}
+.hero,
+.feature-card,
+.private-card,
+.foundation-status,
+.trip-card,
+.preferences,
+.photo-card,
+.ai-state,
+.import-status,
+.collection-filters,
+.selection-toolbar,
+.ai-album-card {
+  border-width: 2px;
+  box-shadow: var(--surface-shadow);
+}
+.feature-grid {
+  gap: 18px;
+}
+.feature-card {
+  padding: 24px;
+}
+.feature-card h3 {
+  font-size: 18px;
+  line-height: 1.4;
+}
+.feature-card p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.feature-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  display: block;
+}
+.primary-button,
+.secondary-button {
+  min-height: 46px;
+  padding: 11px 18px;
+  font-size: 15px;
+  line-height: 1.45;
+  border-width: 2px;
+}
+.primary-button {
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--maroon) 26%, transparent);
+}
+input,
+select,
+textarea {
+  font-size: 15px;
+  line-height: 1.5;
+  border-width: 2px !important;
+}
+input:not([type='checkbox']):not([type='range']),
+select {
+  min-height: 44px;
+}
+.icon-button {
+  min-width: 40px;
+  min-height: 40px;
+}
+.field-label {
+  font-size: 14px;
+}
+.preferences {
+  padding: 28px;
+}
+.preferences h2 {
+  font-size: 32px;
+}
+.eyebrow,
+.version-label,
+.section-heading > span {
+  font-size: 12px;
+  letter-spacing: 0.8px;
+}
+.foundation-status {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.foundation-status > div:nth-child(2) {
+  flex: 1;
+  min-width: 200px;
+}
+footer {
+  padding-top: 20px;
+  border-top: 2px solid var(--line);
+  font-size: 13px;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.creator-credit {
+  display: block;
+  color: var(--gold);
+  margin-top: 6px;
+  font-size: 13px;
+}
+@media (max-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+  .brand {
+    font-size: 25px;
+  }
+  .brand span {
+    font-size: 11px;
+  }
+  main {
+    padding-inline: 24px;
+  }
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  .feature-card {
+    padding: 22px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-copy {
+    padding: 28px;
+  }
+  .hero > .orbit-art {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 228px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding-inline: 12px;
+  }
+  .brand {
+    font-size: 23px;
+  }
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+  }
+  .brand span {
+    white-space: normal;
+    font-size: 11px;
+  }
+  .nav-item {
+    font-size: 14px;
+  }
+  main {
+    padding-inline: 20px;
+  }
+  .page-heading {
+    flex-wrap: wrap;
+  }
+  .hero h2 {
+    font-size: 46px;
+  }
+  .private-card {
+    display: none;
+  }
+  .topbar {
+    padding-inline: 20px;
+  }
+}
+
+/* Birthstone is reserved for memories, quotes and photographic captions. */
+.memory-word,
+blockquote,
+q,
+figcaption,
+.photo-caption strong,
+.memory-frame > span,
+.orbit-caption,
+.caption-result,
+.hero h2 {
+  font-family: 'Birthstone', cursive;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0.1px;
+}
+.memory-word {
+  font-size: 1.4em;
+  line-height: 0.9;
+}
+.brand .memory-word {
+  display: inline;
+  color: inherit;
+  font-family: 'Birthstone', cursive;
+  font-size: 1.4em;
+  margin: 0;
+}
+.hero h2 {
+  font-size: clamp(58px, 5vw, 76px);
+}
+.hero h2 em {
+  font-family: inherit;
+}
+.photo-caption strong {
+  font-size: 25px;
+  line-height: 1.2;
+}
+.memory-frame > span {
+  font-size: 22px;
+  line-height: 1.2;
+}
+.orbit-caption {
+  font-size: 23px;
+  letter-spacing: 0;
+}
+.caption-result,
+blockquote,
+q,
+figcaption {
+  font-size: 28px;
+  line-height: 1.45;
+}
+.brand {
+  font-weight: 500;
+}
+.brand > div:last-child {
+  font-weight: 500;
+}
+.virtual-grid .photo-card {
+  border-width: 2px;
+}
+textarea {
+  font-family: var(--display-font);
+}
+body {
+  font-family: 'Athiti', 'Segoe UI', sans-serif;
+}
+button,
+select {
+  font-family: 'Athiti', 'Segoe UI', sans-serif;
+  text-transform: capitalize;
+}
+.nav-item,
+.primary-button,
+.secondary-button {
+  font-size: 16px;
+  font-weight: 500;
+}
+.hero h2 em {
+  margin-left: 0.16em;
+}

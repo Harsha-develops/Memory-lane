@@ -102,7 +102,7 @@ export function CategoryReview({
     >
       <div className="dialog-heading">
         <div>
-          <div className="eyebrow">CHOOSE CATEGORIES. WE SORT.</div>
+          <div className="eyebrow">Choose Categories. We Sort.</div>
           <h2 id="categorize-title">AI album sorting.</h2>
         </div>
         <button className="icon-button" aria-label="Close categorization" onClick={onClose}>

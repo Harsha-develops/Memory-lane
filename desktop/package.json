@@ -1,6 +1,6 @@
 {
   "name": "thing-sorted",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "description": "A private Windows home for your photo memories",
   "main": "dist-electron/electron/main.js",
@@ -32,10 +32,10 @@
     "typescript-eslint": "8.72.1",
     "vite": "8.3.5"
   },
-  "author": "thing sorted",
+  "author": "TheEpicMonolouge",
   "build": {
     "appId": "com.thingsorted.desktop",
-    "productName": "thing sorted",
+    "productName": "Memory Lane",
     "directories": {
       "output": "../release",
       "buildResources": "build"
@@ -85,7 +85,7 @@
       "deleteAppDataOnUninstall": false,
       "include": "build/installer.nsh",
       "runAfterFinish": false,
-      "artifactName": "thing-sorted-${version}-windows-x64-setup.${ext}"
+      "artifactName": "Memory-Lane-${version}-windows-x64-setup.${ext}"
     },
     "publish": null
   }

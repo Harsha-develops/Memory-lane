@@ -9,7 +9,7 @@ import { join, resolve } from 'node:path';
 import { Backend } from './backend';
 import { APP_URL, assertSender, secureSession, serveAsset } from './security';
 
-app.setName('thing sorted');
+app.setName('Memory Lane');
 app.setAppUserModelId('com.thingsorted.desktop');
 app.setPath(
   'userData',
@@ -67,7 +67,7 @@ if (!hasLock) {
           serveAsset(request, join(desktopRoot, 'dist')),
       );
       window = new BrowserWindow({
-        title: 'thing sorted',
+        title: 'Memory Lane',
         width: 1320,
         height: 900,
         ...readBounds(app.getPath('userData')),
@@ -116,7 +116,7 @@ if (!hasLock) {
         clipboard.writeText(
           JSON.stringify(
             {
-              app: 'thing sorted',
+              app: 'Memory Lane',
               ...backend!.status(),
               electron: process.versions.electron,
               platform: process.platform,
@@ -136,8 +136,8 @@ if (!hasLock) {
     })
     .catch(() => {
       dialog.showErrorBox(
-        'thing sorted could not open',
-        'The application files could not be loaded. Reinstall thing sorted from your saved installer, then try again. Your collection is kept separately.',
+        'Memory Lane could not open',
+        'The application files could not be loaded. Reinstall Memory Lane from your saved installer, then try again. Your collection is kept separately.',
       );
       app.quit();
     });
