@@ -47,6 +47,7 @@ class Library:
         self.wake = threading.Event()
         self.stop = threading.Event()
         self.lock = threading.RLock()
+        self.display_lock = threading.Lock()
         self.thread: threading.Thread | None = None
         self.tasks = ArchiveTasks(self)
 
@@ -265,6 +266,28 @@ class Library:
                     for p in photos
                 ],
             }
+
+    def display_path(self, identifier: str) -> Path:
+        # Regenerate lazily for existing libraries; originals and AI previews are unchanged.
+        with self.display_lock:
+            with self.db.session() as session:
+                photo = session.get(Photo, identifier)
+                if photo is None:
+                    raise StorageError("This photo could not be found.")
+                suffix = photo.extension
+            target = owned(self.previews, identifier + "-display-v1.jpg")
+            if target.is_file():
+                return target
+            root = self.library_root()
+            if root is None:
+                raise StorageError("Reconnect the original-photo library to load a sharp preview.")
+            original = owned(root / "originals", identifier + suffix)
+            decoded = decode(original, suffix, full_resolution=True)
+            try:
+                save_preview(decoded.image, target, 4096, quality=95)
+            finally:
+                decoded.image.close()
+            return target
 
     def image_path(self, identifier: str, preview: bool = False) -> Path:
         with self.db.session() as session:

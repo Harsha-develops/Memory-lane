@@ -27,6 +27,7 @@ class Record(BaseModel):
 
 
 class ArchivedTrip(Record):
+    kind: Literal["trip", "album"] = "trip"
     id: str = Field(pattern=r"^[a-f0-9]{32}$")
     title: str = Field(min_length=1, max_length=120)
     start_date: str | None = None
@@ -216,6 +217,7 @@ class ArchiveTasks:
                     ArchivedTrip(
                         id=t.id,
                         title=t.title,
+                        kind=t.kind,
                         start_date=t.start_date,
                         end_date=t.end_date,
                         cover_photo_id=t.cover_photo_id

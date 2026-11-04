@@ -183,7 +183,7 @@ export function installImports(window: BrowserWindow, backend: Backend) {
 
 export async function photoResource(request: Request, backend: Backend): Promise<Response | null> {
   const url = new URL(request.url);
-  const match = /^\/photos\/([a-f0-9]{32})\/(thumbnail|preview)$/.exec(url.pathname);
+  const match = /^\/photos\/([a-f0-9]{32})\/(thumbnail|preview|display)$/.exec(url.pathname);
   if (!url.pathname.startsWith('/photos/')) return null;
   if (!match || request.method !== 'GET' || url.host !== 'app' || url.search)
     return new Response('Not found', { status: 404 });

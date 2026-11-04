@@ -59,7 +59,7 @@ def dimensions(width: int, height: int) -> None:
         raise StorageError("This image exceeds the 80-megapixel safety limit.")
 
 
-def decode(path: Path, suffix: str) -> Decoded:
+def decode(path: Path, suffix: str, *, full_resolution: bool = False) -> Decoded:
     if suffix not in EXTENSIONS:
         raise StorageError("This file format is not supported.")
     try:
@@ -68,7 +68,9 @@ def decode(path: Path, suffix: str) -> Decoded:
                 raw.open_file(str(path))
                 dimensions(raw.sizes.raw_width, raw.sizes.raw_height)
                 raw.unpack()
-                pixels = raw.postprocess(half_size=True, use_camera_wb=True, output_bps=8)
+                pixels = raw.postprocess(
+                    half_size=not full_resolution, use_camera_wb=True, output_bps=8
+                )
                 image = Image.fromarray(pixels)
                 # RAW previews use half-resolution demosaicing; report sensor dimensions.
                 return Decoded(image, raw.sizes.width, raw.sizes.height, "image/x-camera-raw")
@@ -105,12 +107,14 @@ def decode(path: Path, suffix: str) -> Decoded:
         raise StorageError("This image is damaged or its camera/codec is not supported.") from exc
 
 
-def save_preview(image: Image.Image, destination: Path, edge: int) -> None:
+def save_preview(image: Image.Image, destination: Path, edge: int, quality: int = 88) -> None:
     temporary = destination.with_suffix(".tmp")
     with image.copy() as preview:
         preview.thumbnail((edge, edge), Image.Resampling.LANCZOS)
         preview.info.clear()
         with temporary.open("wb") as stream:
-            preview.save(stream, format="JPEG", quality=88, optimize=True, exif=b"")
+            preview.save(
+                stream, format="JPEG", quality=quality, subsampling=0, optimize=True, exif=b""
+            )
             flush_file(stream)
     temporary.replace(destination)

@@ -143,9 +143,13 @@ def routes(library: Library) -> APIRouter:
 
     @api.get("/photos/{identifier}/{kind}")
     def image(identifier: Id, kind: str) -> FileResponse:
-        if kind not in ("thumbnail", "preview"):
+        if kind not in ("thumbnail", "preview", "display"):
             raise HTTPException(404, "This preview could not be found.")
-        path: Path = library.image_path(identifier, kind == "preview")
+        path: Path = (
+            library.display_path(identifier)
+            if kind == "display"
+            else library.image_path(identifier, kind == "preview")
+        )
         return FileResponse(
             path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=3600"}
         )

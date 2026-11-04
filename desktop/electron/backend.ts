@@ -17,7 +17,7 @@ export class Backend {
   private startup: Promise<void> | null = null;
   private state: AppStatus = {
     phase: 'starting',
-    appVersion: '0.11.0',
+    appVersion: '0.12.0',
     backendVersion: null,
     diagnosticCode: null,
   };
@@ -169,7 +169,7 @@ export class Backend {
                 !('status' in value) ||
                 value.status !== 'ok' ||
                 !('version' in value) ||
-                value.version !== '0.11.0'
+                value.version !== '0.12.0'
               ) {
                 throw new Error('Invalid health response');
               }
@@ -201,7 +201,7 @@ export class Backend {
           port: this.port!,
           path,
           method,
-          timeout: 15000,
+          timeout: /^\/photos\/[a-f0-9]{32}\/display$/.test(path) ? 60000 : 15000,
           headers: {
             Origin: 'thing://app',
             'X-Thing-Token': this.token,
@@ -215,7 +215,7 @@ export class Backend {
           let size = 0;
           response.on('data', (chunk: Buffer) => {
             size += chunk.length;
-            if (size > 8 * 1024 * 1024)
+            if (size > (/^\/photos\/[a-f0-9]{32}\/display$/.test(path) ? 32 : 8) * 1024 * 1024)
               request.destroy(new Error('Response exceeds the allowed size.'));
             else chunks.push(chunk);
           });

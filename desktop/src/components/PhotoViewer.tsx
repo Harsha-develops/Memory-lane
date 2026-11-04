@@ -4,18 +4,47 @@ import { useEffect, useRef, useState } from 'react';
 import type { Photo } from '../../shared/contracts';
 import type { PhotoDetail, Trip } from '../../shared/catalog';
 import { Icon } from './Icon';
-export function PhotoImage({ photo, large = false }: { photo: Photo; large?: boolean }) {
+export function PhotoImage({
+  photo,
+  large = false,
+  onSize,
+}: {
+  photo: Photo;
+  large?: boolean;
+  onSize?: (width: number, height: number) => void;
+}) {
   const [failed, setFailed] = useState(false);
+  const [fallback, setFallback] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   return failed ? (
     <span className="preview-unavailable">{tr('Preview unavailable')}</span>
   ) : (
-    <img
-      src={`thing://app/photos/${photo.id}/${large ? 'preview' : 'thumbnail'}`}
-      alt={photo.name}
-      loading={large ? 'eager' : 'lazy'}
-      decoding="async"
-      onError={() => setFailed(true)}
-    />
+    <>
+      {large && !loaded && (
+        <span className="image-loading" role="status">
+          Loading sharp preview…
+        </span>
+      )}
+      <img
+        src={`thing://app/photos/${photo.id}/${large ? (fallback ? 'preview' : 'display') : 'thumbnail'}`}
+        alt={photo.name}
+        loading={large ? 'eager' : 'lazy'}
+        decoding="async"
+        onLoad={(event) => {
+          setLoaded(true);
+          onSize?.(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight);
+        }}
+        onError={() => {
+          if (large && !fallback) setFallback(true);
+          else setFailed(true);
+        }}
+      />
+      {large && fallback && loaded && (
+        <span className="image-quality-note">
+          Standard preview only. Reconnect your original-photo library for full detail.
+        </span>
+      )}
+    </>
   );
 }
 export function PhotoViewer({
@@ -38,6 +67,7 @@ export function PhotoViewer({
   const [trip, setTrip] = useState('');
   const [error, setError] = useState('');
   const [zoom, setZoom] = useState(false);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
     if (!photo) {
       dialog.current?.close();
@@ -55,6 +85,7 @@ export function PhotoViewer({
     setDetail(null);
     setError('');
     setZoom(false);
+    setImageSize({ width: 0, height: 0 });
     void Promise.all([
       window.thingSorted.catalog('detail', { id: photo.id }),
       window.thingSorted.catalog('trips', {}),
@@ -77,7 +108,7 @@ export function PhotoViewer({
     if (!photo) return;
     try {
       await window.thingSorted.catalog('move', { ids: [photo.id], trip: trip || null });
-      setError(tr('Trip updated.'));
+      setError(tr('Collection updated.'));
       onChanged?.();
     } catch {
       setError(tr('The photo could not be assigned. Please try again.'));
@@ -87,7 +118,7 @@ export function PhotoViewer({
     if (!photo || !trip) return;
     try {
       await window.thingSorted.catalog('cover', { id: trip, photo: photo.id });
-      setError(tr('Trip cover updated.'));
+      setError(tr('Collection cover updated.'));
       onChanged?.();
     } catch {
       setError('Save this photo to the trip first, then set it as the cover.');
@@ -132,10 +163,23 @@ export function PhotoViewer({
             <div className={`large-photo ${zoom ? 'zoomed' : ''}`}>
               <button
                 className="zoom-image"
+                style={
+                  zoom && imageSize.width
+                    ? {
+                        width: imageSize.width / window.devicePixelRatio,
+                        height: imageSize.height / window.devicePixelRatio,
+                      }
+                    : undefined
+                }
                 onClick={() => setZoom(!zoom)}
                 aria-label={zoom ? tr('Fit photo to window') : tr('Enlarge photo')}
               >
-                <PhotoImage key={photo.id} photo={photo} large />
+                <PhotoImage
+                  key={photo.id}
+                  photo={photo}
+                  large
+                  onSize={(width, height) => setImageSize({ width, height })}
+                />
               </button>
             </div>
             <aside className="photo-information">
@@ -163,25 +207,25 @@ export function PhotoViewer({
                 </dd>
               </dl>
               <label className="field-label">
-                {tr('Trip')}
+                {tr('Trip or album')}
                 <select
-                  aria-label={tr('Photo trip')}
+                  aria-label={tr('Photo collection')}
                   value={trip}
                   onChange={(e) => setTrip(e.target.value)}
                 >
                   <option value="">{tr('Unassigned')}</option>
                   {trips.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.title}
+                      {t.title} ({t.kind === 'album' ? 'Album' : 'Trip'})
                     </option>
                   ))}
                 </select>
               </label>
               <button className="primary-button" onClick={() => void move()}>
-                {tr('Save trip')}
+                {tr('Save collection')}
               </button>
               <button className="secondary-button" disabled={!trip} onClick={() => void cover()}>
-                {tr('Use as trip cover')}
+                {tr('Use as collection cover')}
               </button>
               <p className="viewer-note">
                 {tr(

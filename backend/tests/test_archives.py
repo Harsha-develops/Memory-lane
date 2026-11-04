@@ -36,7 +36,7 @@ def original(tmp_path):
         session.get(Item, identifier).state = "queued"
     lib.process(identifier)
     assert lib.photos(0)["total"] == 1
-    trip = lib.catalog.save_trip("A holiday", "2023-01-01", "2024-01-01")
+    trip = lib.catalog.save_trip("A holiday", "2023-01-01", "2024-01-01", kind="album")
     lib.catalog.move([identifier], trip["id"])
     lib.catalog.cover(trip["id"], identifier)
     lib.catalog.save_tags(identifier, ["portrait", "backlit"])
@@ -64,6 +64,7 @@ def test_backup_restore_roundtrip_and_source_unchanged(original, tmp_path):
         assert wait(restored.tasks)["state"] == "complete"
         assert restored.photos(0)["total"] == 1
         assert restored.catalog.trips()[0]["title"] == "A holiday"
+        assert restored.catalog.trips()[0]["kind"] == "album"
         photo = manifest.photos[0]
         assert (
             restored.library_root() / "originals" / (photo.id + photo.extension)

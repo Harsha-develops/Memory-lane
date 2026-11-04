@@ -1,3 +1,11 @@
+# 0.12.0 — Albums And Sharp Photo Viewing
+
+- Add a persistent Trip/Album choice, collection badges, and assignment controls.
+- Migrate existing collections as trips; preserve album type in backups and restores.
+- Regenerate high-quality previews from originals on demand, including full-resolution RAW decoding; zoom at native preview pixels.
+- Use Athiti for photo, person, trip, and album names.
+- Apply motion-toggle changes immediately.
+
 # 0.11.0 — Memory Lane
 
 - Rename the app and installer, with the supplied logo and Windows icon.

@@ -51,7 +51,7 @@ export function App() {
   );
   const [status, setStatus] = useState<AppStatus>({
     phase: 'starting',
-    appVersion: '0.11.0',
+    appVersion: '0.12.0',
     backendVersion: null,
     diagnosticCode: null,
   });
@@ -112,7 +112,7 @@ export function App() {
         if (alive)
           setStatus({
             phase: 'failed',
-            appVersion: '0.11.0',
+            appVersion: '0.12.0',
             backendVersion: null,
             diagnosticCode: 'DESKTOP_BRIDGE_UNAVAILABLE',
           });
@@ -484,7 +484,10 @@ export function App() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         value={preferences}
-        onChange={(value) => transition(() => setPreferences(value))}
+        onChange={(value) => {
+          if (value.motion !== preferences.motion) flushSync(() => setPreferences(value));
+          else transition(() => setPreferences(value));
+        }}
       />
       {message && (
         <div className="toast" role="status">

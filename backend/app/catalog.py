@@ -272,6 +272,7 @@ class Catalog:
                     {
                         "id": trip.id,
                         "title": trip.title,
+                        "kind": trip.kind,
                         "startDate": trip.start_date,
                         "endDate": trip.end_date,
                         "coverPhotoId": cover,
@@ -281,8 +282,15 @@ class Catalog:
             return result
 
     def save_trip(
-        self, title: str, start: str | None, end: str | None, identifier: str | None = None
+        self,
+        title: str,
+        start: str | None,
+        end: str | None,
+        identifier: str | None = None,
+        kind: str | None = None,
     ) -> dict:
+        if kind not in (None, "trip", "album"):
+            raise StorageError("Choose Trip or Album.")
         title = title.strip()
         if not title:
             raise StorageError("Give the trip a name.")
@@ -295,12 +303,14 @@ class Catalog:
             if editing and not trip:
                 raise StorageError("This trip could not be found.")
             if trip:
+                trip.kind = kind or trip.kind
                 trip.title, trip.start_date, trip.end_date = title, start, end
             else:
                 session.add(
                     Trip(
                         id=identifier,
                         title=title,
+                        kind=kind or "trip",
                         start_date=start,
                         end_date=end,
                         cover_photo_id=None,

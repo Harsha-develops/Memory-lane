@@ -32,7 +32,7 @@ def test_m2_catalog_upgrade_preserves_records_and_previous_schema(tmp_path):
         )
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0003_categories"
+            == "0004_collection_kind"
         )
     backups = list((tmp_path / "backups").glob("*.db"))
     assert backups
@@ -78,3 +78,34 @@ def test_uninstall_helper_refuses_originals_nested_in_profile(tmp_path, monkeypa
     monkeypatch.setattr("send2trash.send2trash", targets.append)
     assert recycle_app_data() == 1
     assert targets == []
+
+
+def test_existing_trip_gets_default_kind_on_upgrade(tmp_path):
+    engine = create_engine(f"sqlite:///{(tmp_path / 'library.db').as_posix()}")
+    config = Config()
+    config.set_main_option(
+        "script_location", str(Path(__file__).resolve().parents[1] / "migrations")
+    )
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0003_categories")
+        connection.exec_driver_sql(
+            "INSERT INTO trips (id, title, start_date, end_date, cover_photo_id) "
+            "VALUES (?, ?, ?, ?, ?)",
+            ("b" * 32, "Existing Holiday", "2024-01-01", "2024-01-03", None),
+        )
+    engine.dispose()
+    database = Database(tmp_path)
+    database.close()
+    with sqlite3.connect(tmp_path / "library.db") as connection:
+        assert connection.execute("SELECT title, kind, start_date FROM trips").fetchone() == (
+            "Existing Holiday",
+            "trip",
+            "2024-01-01",
+        )
+    backup = next((tmp_path / "backups").glob("*.db"))
+    with sqlite3.connect(backup) as connection:
+        assert (
+            connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
+            == "0003_categories"
+        )

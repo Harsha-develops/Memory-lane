@@ -57,15 +57,17 @@ test('trips, bulk assignment, orbit, metadata, similarity, privacy, and persiste
     await page.getByRole('button', { name: 'All photos', exact: true }).click();
     await page.locator('.photo-select input').first().check();
     await page.locator('.photo-select input').nth(1).check();
-    await page.getByLabel('Move selected photos to').selectOption({ label: 'Maroon weekend' });
+    await page
+      .getByLabel('Move selected photos to')
+      .selectOption({ label: 'Maroon weekend (Trip)' });
     await page.getByRole('button', { name: 'Move selected', exact: true }).click();
     await expect(page.locator('.selection-toolbar')).toHaveCount(0);
-    await page.getByLabel('Filter by trip').selectOption({ label: 'Maroon weekend' });
+    await page.getByLabel('Filter by collection').selectOption({ label: 'Maroon weekend (Trip)' });
     await expect(page.locator('.photo-card-open')).toHaveCount(2);
     await page.locator('.photo-card-open').first().click();
     await expect(page.locator('.photo-information')).toContainText('Source file modified time');
-    await page.getByRole('button', { name: 'Use as trip cover' }).click();
-    await expect(page.locator('.photo-information')).toContainText('Trip cover updated.');
+    await page.getByRole('button', { name: 'Use as collection cover' }).click();
+    await expect(page.locator('.photo-information')).toContainText('Collection cover updated.');
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Photo orbit', exact: true }).click();
     await expect(page.locator('.orbit-photo')).toHaveCount(5);

@@ -32,6 +32,7 @@ class Query(Dates):
 
 
 class TripInput(Dates):
+    kind: Literal["trip", "album"] | None = None
     id: str | None = Field(default=None, pattern=r"^[0-9a-f]{32}$")
     title: str = Field(min_length=1, max_length=120)
 
@@ -135,7 +136,7 @@ def catalog_routes(catalog: Catalog) -> APIRouter:
 
     @router.post("/trip")
     def save(value: TripInput) -> dict:
-        return catalog.save_trip(value.title, value.start, value.end, value.id)
+        return catalog.save_trip(value.title, value.start, value.end, value.id, value.kind)
 
     @router.post("/trip/delete")
     def delete(value: Identifier) -> dict:

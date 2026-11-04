@@ -245,17 +245,17 @@ export function Library({
           />
         </label>
         <label className="field-label">
-          {tr('Trip')}
+          {tr('Trip or album')}
           <select
             value={trip}
             onChange={(e) => setTrip(e.target.value)}
-            aria-label={tr('Filter by trip')}
+            aria-label={tr('Filter by collection')}
           >
             <option value="">{tr('All photos')}</option>
             <option value="unassigned">{tr('Unassigned')}</option>
             {trips.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.title}
+                {t.title} ({t.kind === 'album' ? 'Album' : 'Trip'})
               </option>
             ))}
           </select>
@@ -328,7 +328,7 @@ export function Library({
               <option value="">{tr('Unassigned')}</option>
               {trips.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.title}
+                  {t.title} ({t.kind === 'album' ? 'Album' : 'Trip'})
                 </option>
               ))}
             </select>

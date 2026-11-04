@@ -10,6 +10,7 @@ export interface PhotoFilter {
   tag?: string;
 }
 export interface Trip {
+  kind: 'trip' | 'album';
   id: string;
   title: string;
   startDate: string | null;
@@ -18,6 +19,7 @@ export interface Trip {
   coverPhotoId: string | null;
 }
 export interface TripInput {
+  kind?: 'trip' | 'album';
   id?: string | null;
   title: string;
   start?: string | null;

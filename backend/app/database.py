@@ -41,6 +41,7 @@ class Trip(Base):
     __tablename__ = "trips"
     id: Mapped[str] = mapped_column(String, primary_key=True)
     title: Mapped[str] = mapped_column(String)
+    kind: Mapped[str] = mapped_column(String, default="trip", server_default="trip")
     start_date: Mapped[str | None] = mapped_column(String, nullable=True)
     end_date: Mapped[str | None] = mapped_column(String, nullable=True)
     cover_photo_id: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -101,19 +102,25 @@ class Database:
                 revision = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar()
-            if revision not in (None, "0001_imports", "0002_collections", "0003_categories"):
+            if revision not in (
+                None,
+                "0001_imports",
+                "0002_collections",
+                "0003_categories",
+                "0004_collection_kind",
+            ):
                 self.engine.dispose()
                 raise RuntimeError("Database schema is newer than this application.")
             if revision is None and any(t != "alembic_version" for t in tables):
                 self.engine.dispose()
                 raise RuntimeError("Unrecognized database schema.")
-        if revision != "0003_categories":
+        if revision != "0004_collection_kind":
             if self.path.stat().st_size:
                 backup_dir = data_root / "backups"
                 backup_dir.mkdir(exist_ok=True)
                 safe_local(backup_dir)
                 backup = (
-                    backup_dir / f"before-0003-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}.db"
+                    backup_dir / f"before-0004-{datetime.now(UTC).strftime('%Y%m%d%H%M%S%f')}.db"
                 )
                 with sqlite3.connect(self.path) as src, sqlite3.connect(backup) as dst:
                     src.backup(dst)

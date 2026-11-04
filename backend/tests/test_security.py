@@ -11,7 +11,7 @@ def test_authenticated_health() -> None:
     with TestClient(create_app(TOKEN)) as client:
         result = client.get("/health", headers=HEADERS)
         assert result.status_code == 200
-        assert result.json() == {"status": "ok", "version": "0.10.0"}
+        assert result.json() == {"status": "ok", "version": "0.12.0"}
 
 
 @pytest.mark.parametrize("token", [None, "wrong", "b" * 64])

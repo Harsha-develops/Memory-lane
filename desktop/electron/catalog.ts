@@ -63,7 +63,13 @@ const specs: Record<string, { path: string; method?: string; fields: Record<stri
   trips: { path: '/trips', method: 'GET', fields: {} },
   saveTrip: {
     path: '/trip',
-    fields: { id: optionalId, title: string(120), start: date, end: date },
+    fields: {
+      id: optionalId,
+      title: string(120),
+      start: date,
+      end: date,
+      kind: (v) => v === undefined || v === 'trip' || v === 'album',
+    },
   },
   deleteTrip: { path: '/trip/delete', fields: { id } },
   move: {
@@ -110,7 +116,7 @@ export function installCatalog(window: BrowserWindow, backend: Backend): void {
     if (action === 'deleteTrip' || action === 'forgetLocations' || action === 'groupDates') {
       const text =
         action === 'deleteTrip'
-          ? 'Remove this trip? Its photos will stay in your library.'
+          ? 'Remove this trip or album? Its photos will stay in your library.'
           : action === 'forgetLocations'
             ? 'Remove stored location coordinates from this app and stop collecting new coordinates? Original photos are not modified.'
             : 'Group all unassigned photos into editable trips by their recorded dates? File-modified and import dates may not reflect when a photo was taken.';

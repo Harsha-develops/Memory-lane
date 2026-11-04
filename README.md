@@ -1,16 +1,18 @@
 # Memory Lane
 
-Formerly thing sorted. Version 0.11.0 updates the Windows app name, supplied logo, Athiti interface typography and Birthstone memory words, quotes and captions, larger interface text, title-case presentation, card borders and shadows. Created By TheEpicMonolouge. Existing ThingSorted data directories and application ID are intentionally retained for upgrade compatibility.
+Version 0.12.0 adds a Trip/Album selector for manual collections, normal Athiti typography for names, and sharp local previews up to 4,096 pixels with native-pixel zoom. Existing imported photos receive the improved preview when opened; originals stay unchanged. Manual collections share the existing single-collection assignment, while AI category albums can overlap.
+
+Formerly thing sorted. Version 0.12.0 updates the Windows app name, supplied logo, Athiti interface typography and Birthstone memory words, quotes and captions, larger interface text, title-case presentation, card borders and shadows. Created By TheEpicMonolouge. Existing ThingSorted data directories and application ID are intentionally retained for upgrade compatibility.
 
 Athiti and Birthstone are bundled locally with their SIL Open Font License notices. No remote font requests are made.
 
 ## About Memory Lane
 
-A private Windows photo application for personal use. Version **0.11.0** includes trips, a photo orbit, a virtual gallery, metadata controls, optional similarity review, and a self-contained Windows x64 installer. English-only interface. Optional AI uses the user's own provider, model, endpoint, and key; there is no bundled credential or local AI model. No Memory Lane account, analytics, or automatic updates.
+A private Windows photo application for personal use. Version **0.12.0** includes trips, a photo orbit, a virtual gallery, metadata controls, optional similarity review, and a self-contained Windows x64 installer. English-only interface. Optional AI uses the user's own provider, model, endpoint, and key; there is no bundled credential or local AI model. No Memory Lane account, analytics, or automatic updates.
 
 ## Open the application
 
-Run `release\Memory-Lane-0.11.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
+Run `release\Memory-Lane-0.12.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
 
 The source project is `D:\projects\Things Sorted`. **Start Memory Lane.cmd** remains the developer launcher. It uses the project's development dependencies. The standalone application is in `release\win-unpacked\Memory Lane.exe` with its accompanying folders; do not copy that executable alone.
 

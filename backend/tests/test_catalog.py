@@ -186,3 +186,40 @@ def test_ai_automatically_populates_multiple_albums_and_replaces_only_selected_s
     assert {a["title"] for a in c.albums()} == {"Alex", "Sunlight"}
     c.rename_person(label, "Alexandra")
     assert {a["title"] for a in c.albums()} == {"Alexandra", "Sunlight"}
+
+
+def test_album_kind_survives_edit_and_reopen(library):
+    album = library.catalog.save_trip("Family Names", None, None, kind="album")
+    assert album["kind"] == "album"
+    library.catalog.move([f"{1:032x}"], album["id"])
+    updated = library.catalog.save_trip("Family", None, None, album["id"])
+    assert updated["kind"] == "album"
+    assert updated["count"] == 1
+    reopened = Library(library.root)
+    try:
+        assert reopened.catalog.trips()[0]["kind"] == "album"
+        assert reopened.catalog.query(trip=album["id"])["total"] == 1
+    finally:
+        reopened.close()
+    with pytest.raises(StorageError, match="Trip or Album"):
+        library.catalog.save_trip("Invalid", None, None, kind="other")
+
+
+def test_sharp_display_regenerates_old_previews_from_original(library, tmp_path):
+    parent = tmp_path / "original-location"
+    parent.mkdir()
+    library.configure(str(parent))
+    identifier = f"{1:032x}"
+    original = library.library_root() / "originals" / (identifier + ".jpg")
+    Image.new("RGB", (5000, 2500), "#8e4c63").save(original, quality=98)
+    before = hashlib.sha256(original.read_bytes()).hexdigest()
+    Image.new("RGB", (1600, 800)).save(library.previews / (identifier + ".jpg"))
+    display = library.display_path(identifier)
+    with Image.open(display) as image:
+        assert image.size == (4096, 2048)
+        assert not image.getexif()
+    stamp = display.stat().st_mtime_ns
+    assert library.display_path(identifier).stat().st_mtime_ns == stamp
+    assert hashlib.sha256(original.read_bytes()).hexdigest() == before
+    with pytest.raises(StorageError):
+        library.display_path("f" * 32)
