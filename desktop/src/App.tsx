@@ -57,7 +57,7 @@ export function App() {
   );
   const [status, setStatus] = useState<AppStatus>({
     phase: 'starting',
-    appVersion: '1.0.0',
+    appVersion: '1.0.1',
     backendVersion: null,
     diagnosticCode: null,
   });
@@ -125,7 +125,7 @@ export function App() {
         if (alive)
           setStatus({
             phase: 'failed',
-            appVersion: '1.0.0',
+            appVersion: '1.0.1',
             backendVersion: null,
             diagnosticCode: 'DESKTOP_BRIDGE_UNAVAILABLE',
           });

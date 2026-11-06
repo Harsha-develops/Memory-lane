@@ -1,4 +1,6 @@
-## Memory Lane 1.0.0
+## Memory Lane 1.0.1
+
+Camera JPG/JPEG files containing MPF multi-picture data are supported: Memory Lane displays the primary image and preserves the complete original.
 
 Each completed categorisation result has **Wrong Person / Category**. It pauses an active batch so you can choose the correct person or category. The imported copy moves to that folder, stays categorised, and uses no additional AI credits. Startup and result loading now show skeleton placeholders that respect motion preferences.
 
@@ -30,7 +32,7 @@ A private Windows photo application for personal use. Version **0.12.0** include
 
 ## Open the application
 
-Run `release\Memory-Lane-1.0.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
+Run `release\Memory-Lane-1.0.1-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
 
 The source project is `D:\projects\MemoryLane`. **Start Memory Lane.cmd** remains the developer launcher. It uses the project's development dependencies. The standalone application is in `release\win-unpacked\Memory Lane.exe` with its accompanying folders; do not copy that executable alone.
 

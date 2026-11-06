@@ -50,3 +50,4 @@ watch-folder.json
 *.exe
 *.zip
 *.img
+/release-*/

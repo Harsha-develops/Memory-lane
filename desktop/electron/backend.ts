@@ -17,7 +17,7 @@ export class Backend {
   private startup: Promise<void> | null = null;
   private state: AppStatus = {
     phase: 'starting',
-    appVersion: '1.0.0',
+    appVersion: '1.0.1',
     backendVersion: null,
     diagnosticCode: null,
   };
@@ -169,7 +169,7 @@ export class Backend {
                 !('status' in value) ||
                 value.status !== 'ok' ||
                 !('version' in value) ||
-                value.version !== '1.0.0'
+                value.version !== '1.0.1'
               ) {
                 throw new Error('Invalid health response');
               }

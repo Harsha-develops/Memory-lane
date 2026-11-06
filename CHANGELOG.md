@@ -1,3 +1,8 @@
+## 1.0.1 — November 6, 2026
+
+- Fixed valid camera JPG/JPEG files with MPF multi-picture data being rejected as an extension mismatch. The primary picture is displayed at full resolution, while every byte of the imported original is preserved.
+- Genuine extension mismatches now report the detected and expected formats. Corrupt files, oversized images, and unrelated multi-page/animated formats retain their existing checks.
+
 ## 1.0.0 — November 6, 2026
 
 - Added Wrong Person / Category beside each categorisation result. It pauses an active batch, lets the user select the correct existing name or category, and moves only that imported copy. Corrections remain categorised and use no API credits. Incorrect person-reference assignments are cleared.

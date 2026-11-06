@@ -253,3 +253,42 @@ def test_long_display_name_keeps_real_extension(client: TestClient) -> None:
     assert len(job["items"][0]["name"]) <= 180
     client.put(f"/uploads/{job['items'][0]['id']}", content=data)
     assert finish(client, job["id"])["items"][0]["state"] == "added"
+
+
+@pytest.mark.parametrize("suffix", [".JPG", ".jpeg"])
+def test_camera_mpo_jpeg_import_preserves_original_and_displays_primary(client, suffix):
+    output = io.BytesIO()
+    with (
+        Image.new("RGB", (120, 80), "red") as primary,
+        Image.new("RGB", (60, 40), "blue") as auxiliary,
+    ):
+        primary.save(output, format="MPO", save_all=True, append_images=[auxiliary])
+    data = output.getvalue()
+    with Image.open(io.BytesIO(data)) as check:
+        assert check.format == "MPO" and check.n_frames == 2
+    job = manifest(client, ["DSC-test" + suffix], [data])
+    identifier = job["items"][0]["id"]
+    assert client.put(f"/uploads/{identifier}", content=data).status_code == 200
+    result = finish(client, job["id"])
+    assert result["items"][0]["state"] == "added", result
+    library = client.app.state.library
+    assert library.organizer.original(identifier).read_bytes() == data
+    for kind in ("thumbnail", "preview", "display"):
+        response = client.get(f"/photos/{identifier}/{kind}")
+        assert response.status_code == 200
+        with Image.open(io.BytesIO(response.content)) as preview:
+            assert preview.size == (120, 80)
+            red, green, blue = preview.getpixel((20, 20))
+            assert red > 200 and green < 30 and blue < 30
+            assert not preview.getexif()
+
+
+def test_png_disguised_as_jpg_still_rejected_with_actual_format(client):
+    data = photo_bytes("PNG")
+    job = manifest(client, ["wrong.JPG"], [data])
+    identifier = job["items"][0]["id"]
+    client.put(f"/uploads/{identifier}", content=data)
+    result = finish(client, job["id"])
+    assert result["items"][0]["state"] == "rejected"
+    assert "PNG" in result["items"][0]["reason"]
+    assert client.get("/photos").json()["total"] == 0

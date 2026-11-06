@@ -77,10 +77,16 @@ def decode(path: Path, suffix: str, *, full_resolution: bool = False) -> Decoded
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(path) as check:
-                if check.format != RASTER[suffix]:
-                    raise StorageError("The file contents do not match its extension.")
+                # Camera JPEGs can carry an MPF index for auxiliary pictures. Pillow
+                # identifies these as MPO; display the primary JPEG and preserve all bytes.
+                camera_jpeg = suffix in {".jpg", ".jpeg"} and check.format == "MPO"
+                if check.format != RASTER[suffix] and not camera_jpeg:
+                    raise StorageError(
+                        f"This file is detected as {check.format}, but its extension expects "
+                        f"{RASTER[suffix]}. Export it in the matching format and import again."
+                    )
                 dimensions(*check.size)
-                if getattr(check, "n_frames", 1) > 1:
+                if getattr(check, "n_frames", 1) > 1 and not camera_jpeg:
                     raise StorageError(
                         "Multi-page and animated images are not supported yet. "
                         "Export a still image first."
