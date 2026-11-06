@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { categories } from '../../shared/categories';
 import { Icon } from './Icon';
+import { LoadingSkeleton } from './LoadingSkeleton';
 
 type Row = {
   id: string;
@@ -17,8 +18,10 @@ export function CategoryReview({
   ids,
   onClose,
   onChanged,
+  promptSave = false,
 }: {
   ids: string[];
+  promptSave?: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -28,6 +31,11 @@ export function CategoryReview({
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [moving, setMoving] = useState('');
+  const [editing, setEditing] = useState('');
+  const [replacement, setReplacement] = useState('');
+  const [correcting, setCorrecting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
   const [consent, setConsent] = useState(false);
   const [people, setPeople] = useState(false);
   const [referenceCount, setReferenceCount] = useState(0);
@@ -57,6 +65,7 @@ export function CategoryReview({
         if (!live) return;
         setProvider(status.configured ? new URL(status.endpoint).origin : '');
         setReferenceCount(refs.length);
+        setPeople(refs.some((ref) => !!peopleNames[ref.label]));
         setNames(labels);
         setOtherName(categoryNames.others ?? 'Others');
         const choices = [...new Set([...categories, ...Object.keys(categoryNames)])];
@@ -117,6 +126,50 @@ export function CategoryReview({
       setMoving('');
     }
   }
+  async function correctPhoto(row: Row) {
+    setCorrecting(true);
+    try {
+      const result = await window.thingSorted.catalog('correctCategory', {
+        id: row.id,
+        label: replacement,
+      });
+      update({
+        ...row,
+        tags: result.tags,
+        destination: replacement,
+        organized: result.organizedLabel ?? '',
+        folder: undefined,
+        moveError: result.organizationError,
+      });
+      setEditing('');
+      setSaveMessage('');
+      setMessage('Correction Saved. No AI Credits Used. Resume Any Remaining Photos When Ready.');
+      onChanged();
+    } catch (error) {
+      update({ ...row, moveError: errorText(error) });
+    } finally {
+      setCorrecting(false);
+    }
+  }
+  async function saveAlbum() {
+    setSaving(true);
+    setSaveMessage('Choose Where To Save This Organised Album…');
+    try {
+      const result = await window.thingSorted.catalog('saveAlbum', { ids });
+      setSaveMessage(
+        result.cancelled
+          ? 'Save Cancelled. Imported Copies Stay In Their Current Folders.'
+          : result.errors.length
+            ? `${result.saved} Of ${ids.length} Saved. ${result.errors[0]} Remaining Copies Stay Safe; Reconnect The Drive And Restart Before Retrying.`
+            : `Album Saved: ${result.saved} Photos In ${result.folder}`,
+      );
+      onChanged();
+    } catch (error) {
+      setSaveMessage(errorText(error));
+    } finally {
+      setSaving(false);
+    }
+  }
   async function analyze() {
     stop.current = false;
     setBusy(true);
@@ -150,6 +203,7 @@ export function CategoryReview({
           moveError: result.organizationError,
         };
         update(row);
+        completed.add(id);
         onChanged();
         if (!row.organized && row.tags.length <= 1 && !stop.current) await movePhoto(row);
       } catch (error) {
@@ -170,6 +224,7 @@ export function CategoryReview({
     }
     setBusy(false);
     setConsent(false);
+    if (promptSave && !stop.current && completed.size === ids.length) await saveAlbum();
   }
   return (
     <dialog
@@ -178,6 +233,10 @@ export function CategoryReview({
       aria-labelledby="categorize-title"
       onCancel={(e) => {
         e.stopPropagation();
+        if (saving || correcting) {
+          e.preventDefault();
+          return;
+        }
         onClose();
       }}
       onKeyDown={(e) => e.stopPropagation()}
@@ -187,14 +246,20 @@ export function CategoryReview({
           <div className="eyebrow">Categorise Once. Organise With Care.</div>
           <h2 id="categorize-title">Categorise & Organise</h2>
         </div>
-        <button className="icon-button" aria-label="Close categorization" onClick={onClose}>
+        <button
+          className="icon-button"
+          aria-label="Close categorization"
+          disabled={saving || correcting}
+          onClick={onClose}
+        >
           <Icon name="close" />
         </button>
       </div>
       <p className="muted">
         Already categorised photos are skipped. Imported copies move into folders inside your Memory
         Lane library; your source files stay untouched. Every result gets a folder automatically.
-        For multiple matches, you can change the destination below—named people are preferred.
+        For recognised named people, only name folders are used. If several people match, choose one
+        name below. Finishing an imported album asks where to save it.
       </p>
       <div className="ai-state">
         Selected: {ids.length} · Already categorised: {rows.filter((r) => r.already).length} ·{' '}
@@ -319,6 +384,8 @@ export function CategoryReview({
           className="primary-button"
           disabled={
             busy ||
+            !!editing ||
+            saving ||
             !!moving ||
             loading ||
             !consent ||
@@ -348,6 +415,26 @@ export function CategoryReview({
           ? 'Checking categorisation…'
           : `${done} / ${ids.length} categorised${busy ? ' · Working…' : ''}`}
       </p>
+      {promptSave && done === ids.length && !loading && (
+        <section className="review-explainer">
+          <h3>Where Should This Album Be Saved?</h3>
+          <p>
+            Choose a destination for the organised imported copies. Source files stay untouched.
+            Cancel keeps the copies in their current folders.
+          </p>
+          <button
+            className="primary-button"
+            disabled={saving || busy || !!editing}
+            onClick={() => void saveAlbum()}
+          >
+            {saving ? 'Saving Organised Album…' : 'Choose Where To Save Album'}
+          </button>
+        </section>
+      )}
+      {saveMessage && <p role="status">{saveMessage}</p>}
+      {(loading || (busy && !rows.length)) && (
+        <LoadingSkeleton label="Loading Photo Results" compact />
+      )}
       <div className="category-results">
         {rows.map((row) => (
           <article key={row.id}>
@@ -369,7 +456,7 @@ export function CategoryReview({
                     Destination For {row.name}
                     <select
                       value={row.destination}
-                      disabled={busy || !!moving}
+                      disabled={busy || !!moving || saving}
                       onChange={(e) => update({ ...row, destination: e.target.value })}
                     >
                       {(row.tags.length ? row.tags : [row.organized || 'others']).map((tag) => (
@@ -381,7 +468,9 @@ export function CategoryReview({
                   </label>
                   <button
                     className="secondary-button"
-                    disabled={busy || !!moving || row.organized === row.destination}
+                    disabled={
+                      busy || !!moving || saving || correcting || row.organized === row.destination
+                    }
                     onClick={() => void movePhoto(row)}
                   >
                     {moving === row.id
@@ -390,6 +479,62 @@ export function CategoryReview({
                         ? 'Organised'
                         : 'Move Photo Here'}
                   </button>
+                  <button
+                    className="secondary-button"
+                    disabled={saving || correcting || !!moving || (!!editing && editing !== row.id)}
+                    onClick={() => {
+                      stop.current = true;
+                      if (busy) void window.thingSorted.ai('cancel', null).catch(() => {});
+                      setEditing(row.id);
+                      setReplacement('');
+                      setSaveMessage('');
+                    }}
+                  >
+                    Wrong Person / Category
+                  </button>
+                  {editing === row.id && (
+                    <section className="review-explainer" aria-label={`Correct ${row.name}`}>
+                      <p>
+                        Choose The Correct Person Or Category. Only This Imported Copy Moves; Source
+                        Files Stay Untouched. No AI Request Is Sent.
+                      </p>
+                      {busy && (
+                        <p role="status">Pausing Categorisation Before Applying Your Correction…</p>
+                      )}
+                      <label className="field-label">
+                        Correct Person Or Category
+                        <select
+                          aria-label="Correct Person Or Category"
+                          value={replacement}
+                          disabled={busy || correcting}
+                          onChange={(e) => setReplacement(e.target.value)}
+                        >
+                          <option value="">Choose A Person Or Category</option>
+                          {[...new Set([...Object.keys(names), ...available])]
+                            .filter((tag) => row.tags.length !== 1 || !row.tags.includes(tag))
+                            .map((tag) => (
+                              <option key={tag} value={tag}>
+                                {names[tag] ?? tag}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <button
+                        className="primary-button"
+                        disabled={busy || correcting || !replacement}
+                        onClick={() => void correctPhoto(row)}
+                      >
+                        {correcting ? 'Saving Correction…' : 'Apply Correction'}
+                      </button>
+                      <button
+                        className="text-button"
+                        disabled={correcting}
+                        onClick={() => setEditing('')}
+                      >
+                        Cancel Correction
+                      </button>
+                    </section>
+                  )}
                   {row.organized && (
                     <small>
                       Stored In {names[row.organized] ?? row.organized}

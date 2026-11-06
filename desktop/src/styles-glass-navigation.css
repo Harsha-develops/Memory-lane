@@ -322,3 +322,57 @@ button:active:not(:disabled) {
 [data-menu-position='top'][data-menu-collapsed='true'] .menu-toggle::before {
   content: '☰';
 }
+
+.loading-skeleton {
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 20px;
+}
+.skeleton-card {
+  padding: 14px;
+  border: 2px solid #ac647238;
+  border-radius: 20px;
+}
+.skeleton-block {
+  background: linear-gradient(100deg, #9e455728 20%, #d0ad7045 45%, #9e455728 70%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  border-radius: 12px;
+}
+.skeleton-heading {
+  height: 30px;
+  width: 45%;
+  margin-bottom: 24px;
+}
+.skeleton-photo {
+  aspect-ratio: 4 / 3;
+}
+.skeleton-line {
+  height: 18px;
+  width: 70%;
+  margin-top: 16px;
+}
+.loading-skeleton.compact {
+  padding: 12px 0;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block {
+    animation: none;
+  }
+}
+[data-motion='off'] .skeleton-block {
+  animation: none;
+}

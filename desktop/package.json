@@ -1,6 +1,6 @@
 {
   "name": "thing-sorted",
-  "version": "0.15.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A private Windows home for your photo memories",
   "main": "dist-electron/electron/main.js",

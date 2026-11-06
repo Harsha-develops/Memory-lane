@@ -9,6 +9,7 @@ from pathlib import Path
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from app.album_saver import AlbumSaver
 from app.archives import ArchiveTasks
 from app.catalog import Catalog
 from app.database import Database, Item, Job, Photo, Setting
@@ -54,9 +55,11 @@ class Library:
         self.tasks = ArchiveTasks(self)
         self.organizer = Organizer(self)
         self.duplicates = Duplicates(self)
+        self.saver = AlbumSaver(self)
 
     def start(self) -> None:
         self.organizer.recover_pending()
+        self.saver.recover()
         self.duplicates.recover()
         with self.db.session.begin() as session:
             for item in session.scalars(select(Item).where(Item.state.in_(ACTIVE))):
@@ -284,9 +287,6 @@ class Library:
             target = owned(self.previews, identifier + "-display-v1.jpg")
             if target.is_file():
                 return target
-            root = self.library_root()
-            if root is None:
-                raise StorageError("Reconnect the original-photo library to load a sharp preview.")
             original = self.organizer.original(identifier)
             decoded = decode(original, suffix, full_resolution=True)
             try:

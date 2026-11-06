@@ -47,6 +47,8 @@ export interface SimilarData {
   pairs: { id: string; first: Photo; second: Photo; distance: number }[];
 }
 export interface CatalogRequests {
+  correctCategory: { id: string; label: string };
+  saveAlbum: { ids: string[] };
   categoryNames: Record<string, never>;
   renameCategory: { label: string; name: string };
   organize: { id: string; label: string };
@@ -75,6 +77,8 @@ export interface CatalogRequests {
   reviewSimilar: { id: string; decision: 'keep' | 'similar' };
 }
 export interface CatalogResponses {
+  correctCategory: { tags: string[]; organizedLabel?: string; organizationError?: string };
+  saveAlbum: { cancelled: boolean; folder?: string; saved: number; errors: string[] };
   categoryNames: Record<string, string>;
   renameCategory: { ok: boolean };
   organize: { label: string; folder: string; moved: boolean };

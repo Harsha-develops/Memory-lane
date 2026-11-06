@@ -148,6 +148,41 @@ class Catalog:
             photo.tags = json.dumps(tags)
         return {"ok": True}
 
+    def correct_category(self, identifier: str, label: str) -> dict:
+        if not re.fullmatch(r"[a-z][a-z0-9 -]{0,39}", label):
+            raise StorageError("Choose a valid category or named person.")
+        if label.startswith("person ") and label not in self.person_names():
+            raise StorageError("Choose an existing named person.")
+        with self.library.lock:
+            if self.library.tasks.busy():
+                raise StorageError("Finish the backup or restore before correcting a photo.")
+            original = self.library.organizer.original(identifier)
+            if not original.is_file():
+                raise StorageError("Reconnect the drive containing this imported photo.")
+            with self.library.db.session.begin() as session:
+                photo = session.get(Photo, identifier)
+                if not photo or not photo.categorized_at:
+                    raise StorageError("Wait for this photo to finish categorisation.")
+                if (
+                    any(
+                        session.get(Setting, prefix + identifier)
+                        for prefix in ("pending_delete:", "relocation:")
+                    )
+                    or photo.pending_path
+                ):
+                    raise StorageError(
+                        "Finish the pending file operation before correcting this photo."
+                    )
+                photo.tags = json.dumps([label])
+                photo.organized_label = ""
+                if photo.person_ref and photo.person_ref != label:
+                    photo.person_ref = ""
+                if not label.startswith("person "):
+                    names = self.category_names()
+                    names.setdefault(label, label.title())
+                    session.merge(Setting(key="category_names", value=json.dumps(names)))
+            return {"tags": [label], **self.library.organizer.ensure_folder(identifier)}
+
     def auto_categories(self, identifier: str, tags: list[str], scope: list[str]) -> dict:
         if (
             len(scope) > 64
@@ -165,6 +200,12 @@ class Catalog:
             photo.categorized_at = datetime.now(UTC).isoformat()
             previous = set(json.loads(photo.tags or "[]"))
             updated = sorted((previous - set(scope)) | set(tags))
+            names = self.person_names()
+            people = sorted(t for t in updated if t.startswith("person ") and t in names)
+            if photo.person_ref in names:
+                people = sorted(set(people + [photo.person_ref]))
+            if people:
+                updated = people
             if len(updated) > 64:
                 raise StorageError("Too many categories for this photo.")
             photo.tags = json.dumps(updated)

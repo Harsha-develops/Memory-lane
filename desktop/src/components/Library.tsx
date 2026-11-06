@@ -302,9 +302,26 @@ export function Library({
       >
         AI categorize this view (up to 20)
       </button>
+      {job && !job.active && job.items.some((item) => item.state === 'added' && item.photoId) && (
+        <button
+          className="secondary-button"
+          onClick={() => {
+            setReviewIds([
+              ...new Set(
+                job.items
+                  .filter((item) => item.state === 'added' && item.photoId)
+                  .map((item) => item.photoId!),
+              ),
+            ]);
+          }}
+        >
+          Categorise Imported Album & Choose Save Location
+        </button>
+      )}
       {reviewIds.length > 0 && (
         <CategoryReview
           ids={reviewIds}
+          promptSave
           onClose={() => setReviewIds([])}
           onChanged={() => setRefreshKey((v) => v + 1)}
         />

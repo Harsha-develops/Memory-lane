@@ -1,8 +1,14 @@
-## Memory Lane 0.15.0
+## Memory Lane 1.0.0
+
+Each completed categorisation result has **Wrong Person / Category**. It pauses an active batch so you can choose the correct person or category. The imported copy moves to that folder, stays categorised, and uses no additional AI credits. Startup and result loading now show skeleton placeholders that respect motion preferences.
+
+Use **Categorise Imported Album & Choose Save Location** after an import. Named-person matching starts enabled when named references exist. When every newly imported photo is categorised, a native folder chooser asks where to save the album. Re-import duplicates are excluded. Cancelling leaves the current files in place; the completed album can be saved later without another AI request.
+
+Saving creates a unique `Memory Lane Album-…/Organized/<Name Or Category>/` folder in your selected location. The app verifies each copy before removing its previous managed copy, remembers the destination, and preserves your external source files. Interrupted saves retain a recovery journal; reconnect the destination and restart to resume. Keep managed folders intact and use the app to move them so its catalog can track the files.
 
 Similarity review now permanently deletes one **imported copy** when you select **Mark As Similar & Delete One**. It estimates quality from resolution and preview sharpness; close scores retain one deterministically. Keep Both remains available. External source files are untouched. Previously exported backups are independent snapshots and retain their contents.
 
-Categorisation skips completed photos before selecting a batch and sends no repeat AI request. Every result is moved into an organised managed folder, with named people preferred and the destination changeable. Offline drives or move errors keep the categorised state and report the failure; reconnect and restart to retry outstanding folder organisation. Others is renameable, and optional AI discovery creates a new subject category in the existing request. Classification uses compact previews/prompts and caps replies at 256 tokens; provider billing varies and people references add input tokens.
+Categorisation skips completed photos before selecting a batch and sends no repeat AI request. Every result is moved into an organised managed folder, with recognised named people routed only to name folders. If several named people match, choose one of their folders. Offline drives or move errors keep the categorised state and report the failure; reconnect and restart to retry outstanding folder organisation. Others is renameable, and optional AI discovery creates a new subject category in the existing request. Classification uses compact previews/prompts and caps replies at 256 tokens; provider billing varies and people references add input tokens.
 
 The menu scrolls away with the page in both Top and Left layouts. Collapse/Expand Menu remembers its state.
 
@@ -24,9 +30,9 @@ A private Windows photo application for personal use. Version **0.12.0** include
 
 ## Open the application
 
-Run `release\Memory-Lane-0.15.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
+Run `release\Memory-Lane-1.0.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
 
-The source project is `D:\projects\Things Sorted`. **Start Memory Lane.cmd** remains the developer launcher. It uses the project's development dependencies. The standalone application is in `release\win-unpacked\Memory Lane.exe` with its accompanying folders; do not copy that executable alone.
+The source project is `D:\projects\MemoryLane`. **Start Memory Lane.cmd** remains the developer launcher. It uses the project's development dependencies. The standalone application is in `release\win-unpacked\Memory Lane.exe` with its accompanying folders; do not copy that executable alone.
 
 **Release validation limit:** the packaged app is tested on this Windows 11 development PC. A clean Windows machine and Windows 10 have not been tested. The full M6 acceptance gate remains pending that check. See `MILESTONES-3-6.md` for evidence and `packaging\CLEAN-WINDOWS-CHECKLIST.md` for the remaining test.
 
@@ -90,7 +96,7 @@ Build prerequisites are Windows x64, Python 3.12 and Node/npm. This build used P
 In **PowerShell**, these commands create the local Python environment and install the exact hashed test/build dependencies. Internet access is needed for dependencies; expect successful installations.
 
 ```powershell
-Set-Location 'D:\projects\Things Sorted\backend'
+Set-Location 'D:\projects\MemoryLane\backend'
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-dev.lock -r requirements-build.lock
 Set-Location '..\desktop'
@@ -101,7 +107,7 @@ npm.cmd run build
 From the project folder, double-click **Build installer.cmd**. It collects notices, freezes the backend with PyInstaller, builds the desktop, and creates the NSIS installer in `release`. It stops on build failures and does not install system software. The equivalent PowerShell command is:
 
 ```powershell
-Set-Location 'D:\projects\Things Sorted'
+Set-Location 'D:\projects\MemoryLane'
 .\backend\.venv\Scripts\python.exe packaging\build.py
 ```
 
@@ -110,7 +116,7 @@ Set-Location 'D:\projects\Things Sorted'
 In **PowerShell**, run the following from the project folder. Expect passing pytest, Ruff, TypeScript/build, ESLint, Prettier, and Playwright checks. The two real-RAW tests skip unless `THING_RAW_FIXTURES` points to the documented test-only sample directory from `MILESTONE-2.md`.
 
 ```powershell
-Set-Location 'D:\projects\Things Sorted'
+Set-Location 'D:\projects\MemoryLane'
 .\backend\.venv\Scripts\python.exe -m pytest backend\tests
 .\backend\.venv\Scripts\ruff.exe check backend\app backend\tests backend\migrations backend\entry.py packaging
 .\backend\.venv\Scripts\ruff.exe format --check backend\app backend\tests backend\migrations backend\entry.py packaging
@@ -124,7 +130,7 @@ npm.cmd test
 Desktop tests open real windows using temporary profiles and synthetic photos. To test the packaged executable from the desktop directory, set the following environment variable and run the two release tests. The import test restricts the application's PATH to Windows directories.
 
 ```powershell
-$env:THING_PACKAGED_BINARY='D:\projects\Things Sorted\release\win-unpacked\Memory Lane.exe'
+$env:THING_PACKAGED_BINARY='D:\projects\MemoryLane\release\win-unpacked\Memory Lane.exe'
 npm.cmd exec playwright -- test tests/collections.spec.ts tests/performance.spec.ts
 Remove-Item Env:THING_PACKAGED_BINARY
 ```

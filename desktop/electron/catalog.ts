@@ -24,6 +24,10 @@ const optionalString =
     value === undefined || string(max)(value);
 const bool: Check = (value) => typeof value === 'boolean';
 const specs: Record<string, { path: string; method?: string; fields: Record<string, Check> }> = {
+  saveAlbum: {
+    path: '/save-album',
+    fields: { ids: (v) => Array.isArray(v) && v.length > 0 && v.length <= 200 && v.every(id) },
+  },
   query: {
     path: '/query',
     fields: {
@@ -36,6 +40,10 @@ const specs: Record<string, { path: string; method?: string; fields: Record<stri
       search: optionalString(100),
       tag: optionalString(40),
     },
+  },
+  correctCategory: {
+    path: '/correct-category',
+    fields: { id, label: (v) => typeof v === 'string' && /^[a-z][a-z0-9 -]{0,39}$/.test(v) },
   },
   organize: {
     path: '/organize',
@@ -120,6 +128,32 @@ export function installCatalog(window: BrowserWindow, backend: Backend): void {
       Object.entries(spec.fields).some(([key, check]) => !check(values[key]))
     )
       throw new Error('Invalid collection values.');
+    if (action === 'saveAlbum') {
+      const choice = await dialog.showOpenDialog(window, {
+        title: 'Categorisation Complete — Where Should This Album Be Saved?',
+        buttonLabel: 'Save Organised Album Here',
+        properties: ['openDirectory', 'createDirectory'],
+      });
+      if (choice.canceled || !choice.filePaths[0]) return { cancelled: true, saved: 0, errors: [] };
+      const ids = [...new Set(values.ids as string[])];
+      const plan = await backend.call<{ batch: string; folder: string }>(
+        '/catalog/save-album',
+        'POST',
+        { ids, parent: choice.filePaths[0] },
+      );
+      let saved = 0;
+      const errors: string[] = [];
+      for (const photoId of ids) {
+        try {
+          await backend.call('/catalog/save-photo', 'POST', { id: photoId, batch: plan.batch });
+          saved++;
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : 'A photo could not be moved.');
+          break;
+        }
+      }
+      return { cancelled: false, folder: plan.folder, saved, errors };
+    }
     if (action === 'deleteTrip' || action === 'forgetLocations' || action === 'groupDates') {
       const text =
         action === 'deleteTrip'

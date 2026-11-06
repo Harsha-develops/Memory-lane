@@ -36,6 +36,10 @@ class Duplicates:
                     select(Setting.key).where(Setting.key.startswith("pending_delete:"))
                 ):
                     raise StorageError("Finish the pending deletion before reviewing another pair.")
+                if session.scalar(select(Setting.key).where(Setting.key.startswith("relocation:"))):
+                    raise StorageError(
+                        "Restart Memory Lane to finish the interrupted album save first."
+                    )
                 pair = session.get(SimilarPair, pair_id)
                 if not pair or pair.decision != "pending":
                     raise StorageError("This suggestion has already been reviewed.")
@@ -55,7 +59,7 @@ class Duplicates:
                 if abs(a - b) <= 0.5:
                     keep, remove = sorted((first, second), key=lambda p: p.id)
                 source = self.library.organizer.original(remove.id)
-                root = self.library.library_root()
+                root = self.library.organizer.root_for(remove.id)
                 record = {"path": source.relative_to(root).as_posix(), "kept": keep.id}
                 result = {"ok": True, "deletedName": remove.filename, "keptName": keep.filename}
             # Persist intent first. A crash after unlink is completed on next startup.
@@ -71,7 +75,7 @@ class Duplicates:
                 return
             record = json.loads(journal.value)
             photo = session.get(Photo, identifier)
-            root = self.library.library_root()
+            root = self.library.organizer.root_for(identifier)
             if root is None:
                 raise StorageError("Reconnect the imported-copy library to finish deletion.")
             path = relative_item(root, record["path"])
@@ -102,6 +106,9 @@ class Duplicates:
                     or_(SimilarPair.first_id == identifier, SimilarPair.second_id == identifier)
                 )
             )
+            assigned = session.get(Setting, "photo_root:" + identifier)
+            if assigned:
+                session.delete(assigned)
             session.delete(photo)
             session.delete(session.get(Setting, "pending_delete:" + identifier))
 

@@ -198,6 +198,8 @@ class ArchiveTasks:
                 raise StorageError(
                     "Reconnect the library and finish pending deletions before backing up."
                 )
+            if session.scalar(select(Setting.key).where(Setting.key.startswith("relocation:"))):
+                raise StorageError("Finish the interrupted album save before backing up.")
             if active:
                 raise StorageError("Finish or cancel the current import first.")
         if self.library.catalog.scan_state == "running":
@@ -206,13 +208,18 @@ class ArchiveTasks:
     def backup(self, parent: str) -> dict:
         with self.library.lock:
             self._idle()
-            source = self.library.library_root()
+            roots = self.library.organizer.roots()
+            source = roots[0] if roots else None
             if source is None:
                 raise StorageError("Import photos before creating a backup.")
             destination_parent = safe_local(Path(parent))
             if (
                 destination_parent == source
                 or destination_parent.is_relative_to(source)
+                or any(
+                    destination_parent.is_relative_to(root)
+                    for root in self.library.organizer.roots()
+                )
                 or destination_parent.is_relative_to(self.library.root.parent)
             ):
                 raise StorageError("Choose a backup folder outside the app and original library.")
@@ -280,6 +287,10 @@ class ArchiveTasks:
             if (
                 destination_parent == source_path
                 or destination_parent.is_relative_to(source_path)
+                or any(
+                    destination_parent.is_relative_to(root)
+                    for root in self.library.organizer.roots()
+                )
                 or destination_parent.is_relative_to(self.library.root.parent)
             ):
                 raise StorageError("Choose a separate location for restored originals.")
@@ -379,7 +390,7 @@ class ArchiveTasks:
             archive = Archive.model_validate(job["plan"])
             archive.validate_links()
             source, destination = (
-                safe_local(Path(job["source"])),
+                safe_local(Path(job["source"]), exists=job["kind"] != "backup"),
                 safe_local(Path(job["destination"])),
             )
             restored = []

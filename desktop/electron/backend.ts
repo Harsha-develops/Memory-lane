@@ -17,7 +17,7 @@ export class Backend {
   private startup: Promise<void> | null = null;
   private state: AppStatus = {
     phase: 'starting',
-    appVersion: '0.15.0',
+    appVersion: '1.0.0',
     backendVersion: null,
     diagnosticCode: null,
   };
@@ -169,7 +169,7 @@ export class Backend {
                 !('status' in value) ||
                 value.status !== 'ok' ||
                 !('version' in value) ||
-                value.version !== '0.15.0'
+                value.version !== '1.0.0'
               ) {
                 throw new Error('Invalid health response');
               }
@@ -201,7 +201,12 @@ export class Backend {
           port: this.port!,
           path,
           method,
-          timeout: /^\/photos\/[a-f0-9]{32}\/display$/.test(path) ? 60000 : 15000,
+          timeout:
+            path === '/catalog/save-photo'
+              ? 120000
+              : /^\/photos\/[a-f0-9]{32}\/display$/.test(path)
+                ? 60000
+                : 15000,
           headers: {
             Origin: 'thing://app',
             'X-Thing-Token': this.token,

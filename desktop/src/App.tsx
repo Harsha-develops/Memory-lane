@@ -1,3 +1,4 @@
+import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { AmbientEffects } from './components/AmbientEffects';
 import { MemoryText } from './components/MemoryText';
 import { AiPanel } from './components/AiPanel';
@@ -56,7 +57,7 @@ export function App() {
   );
   const [status, setStatus] = useState<AppStatus>({
     phase: 'starting',
-    appVersion: '0.15.0',
+    appVersion: '1.0.0',
     backendVersion: null,
     diagnosticCode: null,
   });
@@ -124,7 +125,7 @@ export function App() {
         if (alive)
           setStatus({
             phase: 'failed',
-            appVersion: '0.15.0',
+            appVersion: '1.0.0',
             backendVersion: null,
             diagnosticCode: 'DESKTOP_BRIDGE_UNAVAILABLE',
           });
@@ -348,11 +349,11 @@ export function App() {
                 </div>
               </section>
             )}
-            {status.phase !== 'ready' && view !== 'home' && view !== 'roadmap' ? (
+            {status.phase === 'starting' ? (
+              <LoadingSkeleton />
+            ) : status.phase !== 'ready' && view !== 'home' && view !== 'roadmap' ? (
               <section className="loading-library" role="status">
-                {status.phase === 'starting'
-                  ? tr('Opening your local collection\u2026')
-                  : tr('Reconnect above to open your collection.')}
+                {tr('Reconnect above to open your collection.')}
               </section>
             ) : view === 'home' ? (
               <>
@@ -454,24 +455,16 @@ export function App() {
                     <strong>
                       {status.phase === 'ready'
                         ? tr('Your local connection is ready.')
-                        : status.phase === 'starting'
-                          ? tr('Getting your space ready\u2026')
-                          : tr('Your local connection needs attention.')}
+                        : tr('Your local connection needs attention.')}
                     </strong>
                     <p>
                       {status.phase === 'ready'
                         ? tr('Ready to copy your photos safely into your chosen library.')
-                        : status.phase === 'starting'
-                          ? tr('Starting the private service on this computer.')
-                          : tr('Use the recovery controls above to reconnect.')}
+                        : tr('Use the recovery controls above to reconnect.')}
                     </p>
                   </div>
                   <span className={`connection-tag ${status.phase}`} role="status">
-                    {status.phase === 'ready'
-                      ? 'Health OK'
-                      : status.phase === 'starting'
-                        ? 'Connecting'
-                        : 'Offline Error'}
+                    {status.phase === 'ready' ? 'Health OK' : 'Offline Error'}
                   </span>
                 </section>
               </>

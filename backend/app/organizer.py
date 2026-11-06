@@ -42,6 +42,24 @@ class Organizer:
     def __init__(self, library: "Library") -> None:
         self.library = library
 
+    def root_for(self, identifier: str) -> Path:
+        with self.library.db.session() as session:
+            assigned = session.get(Setting, "photo_root:" + identifier)
+            root = safe_local(Path(assigned.value)) if assigned else self.library.library_root()
+        if root is None:
+            raise StorageError("Reconnect your imported-photo library.")
+        return root
+
+    def roots(self) -> list[Path]:
+        with self.library.db.session() as session:
+            values = list(
+                session.scalars(select(Setting.value).where(Setting.key.startswith("photo_root:")))
+            )
+            main = session.get(Setting, "library_root")
+            if main:
+                values.append(main.value)
+        return [safe_local(Path(v), exists=False) for v in set(values)]
+
     def recover_pending(self) -> None:
         with self.library.db.session() as session:
             identifiers = list(session.scalars(select(Photo.id).where(Photo.pending_path != "")))
@@ -62,10 +80,15 @@ class Organizer:
                     return {}
                 tags = json.loads(photo.tags or "[]")
                 names = self.library.catalog.person_names()
-                label = photo.organized_label or next(
-                    (t for t in tags if t.startswith("person ") and t in names),
-                    tags[0] if tags else "others",
+                people = sorted(t for t in tags if t.startswith("person ") and t in names)
+                label = (
+                    (photo.organized_label if photo.organized_label in people else people[0])
+                    if people
+                    else photo.organized_label or (tags[0] if tags else "others")
                 )
+            if people and tags != people:
+                with self.library.db.session.begin() as session:
+                    session.get(Photo, identifier).tags = json.dumps(people)
             result = self.move(identifier, label)
             return {"organizedLabel": result["label"]}
         except (OSError, StorageError) as error:
@@ -76,22 +99,28 @@ class Organizer:
         with self.library.db.session() as session:
             rows = list(
                 session.execute(
-                    select(Photo.id, Photo.organized_label, Photo.storage_path).where(
+                    select(Photo.id, Photo.organized_label, Photo.storage_path, Photo.tags).where(
                         Photo.categorized_at != ""
                     )
                 )
             )
-        for identifier, label, path in rows:
+        for identifier, label, path, raw_tags in rows:
             if self.library.stop.is_set():
                 break
             expected = "Organized/" + clean_name(names.get(label, label.title()), 60) + "/"
-            if label and path.startswith(expected):
+            tags = json.loads(raw_tags or "[]")
+            people = [t for t in tags if t.startswith("person ") and t in names]
+            if (
+                label
+                and path.startswith(expected)
+                and (not people or (label in people and tags == sorted(people)))
+            ):
                 continue
             self.ensure_folder(identifier)
 
     def original(self, identifier: str) -> Path:
         with self.library.lock:
-            root = self.library.library_root()
+            root = self.root_for(identifier)
             if root is None:
                 raise StorageError("Reconnect your imported-photo library.")
             with self.library.db.session.begin() as session:
@@ -120,12 +149,23 @@ class Organizer:
             if self.library.tasks.status().get("state") in ("running", "paused"):
                 raise StorageError("Finish the current backup or restore before organizing files.")
             source = self.original(identifier)
-            root = self.library.library_root()
+            root = self.root_for(identifier)
             with self.library.db.session() as session:
                 photo = session.get(Photo, identifier)
                 if session.get(Setting, "pending_delete:" + identifier):
                     raise StorageError("Restart Memory Lane to finish the pending deletion first.")
+                if session.get(Setting, "relocation:" + identifier):
+                    raise StorageError("Restart Memory Lane to finish the interrupted save first.")
                 tags = json.loads(photo.tags or "[]")
+                people = [
+                    t
+                    for t in tags
+                    if t.startswith("person ") and t in self.library.catalog.person_names()
+                ]
+                if people and label not in people:
+                    raise StorageError(
+                        "This photo matches a named person. Choose one of its name folders."
+                    )
                 if not photo.categorized_at or label not in (tags or ["others", "uncategorized"]):
                     raise StorageError("Choose one of this photo's matching categories.")
                 title = {

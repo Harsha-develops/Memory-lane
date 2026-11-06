@@ -1,3 +1,16 @@
+## 1.0.0 — November 6, 2026
+
+- Added Wrong Person / Category beside each categorisation result. It pauses an active batch, lets the user select the correct existing name or category, and moves only that imported copy. Corrections remain categorised and use no API credits. Incorrect person-reference assignments are cleared.
+- Added responsive skeleton loading screens during startup and photo-result loading, with reduced-motion and app motion-setting support.
+- Includes the named-person priority and verified album save-location changes described below.
+
+## 0.16.0 — November 6, 2026
+
+- Recognised named people take priority over subject and lighting categories: photos appear only in matching named-person albums, with one physical name folder. Multiple matched names retain a destination chooser. Existing mixed named-person records are repaired without repeating AI analysis.
+- The imported-album action processes newly added copies (excluding re-import duplicates), skips completed photos, and opens a native save-location chooser once all selected photos are categorised. Cancelling preserves the current folders.
+- Selected albums move into a unique Memory Lane Album folder at the chosen location. Moves verify SHA-256 before removing old imported copies, preserve external sources, refuse overwrites, and keep a recovery journal for interrupted saves.
+- Saved locations persist across restart and remain available to the viewer, category-folder moves, duplicate review, and backup/restore. No new AI requests or tokens are needed to move saved photos.
+
 ## 0.15.0 — November 6, 2026
 
 - Added Gemini (Google AI Studio, Gemini 3.1 Flash-Lite) and OpenAI (GPT-4.1 Mini) vision presets beside Groq. Model IDs remain editable.

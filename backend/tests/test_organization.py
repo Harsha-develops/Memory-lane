@@ -46,11 +46,12 @@ def test_move_keeps_source_and_single_destination_and_skips_recategorization(imp
     assert library.catalog.query(tag=person)["total"] == 1
     assert [album["title"] for album in library.catalog.albums()] == ["Alex"]
     assert c.auto_categories(identifier, ["food"], ["food"])["alreadyCategorized"]
-    assert c.detail(identifier)["tags"] == ["backlit", person, "portrait"]
+    assert c.detail(identifier)["tags"] == [person]
     assert not library.organizer.move(identifier, person)["moved"]
-    library.organizer.move(identifier, "backlit")
-    assert not target.exists()
-    assert library.organizer.original(identifier).parent.name == "Backlit"
+    with pytest.raises(StorageError, match="named person"):
+        library.organizer.move(identifier, "backlit")
+    assert target.exists()
+    assert library.organizer.original(identifier).parent.name == "Alex"
     assert library.display_path(identifier).is_file()
     assert hashlib.sha256(source.read_bytes()).digest() == hashlib.sha256(body).digest()
 

@@ -76,6 +76,14 @@ class Move(Strict):
         return values
 
 
+class SaveAlbum(Move):
+    parent: str = Field(min_length=1, max_length=1000)
+
+
+class SavePhoto(Identifier):
+    batch: str = Field(pattern=r"^[0-9a-f]{32}$")
+
+
 class Cover(Identifier):
     photo: str = Field(pattern=r"^[0-9a-f]{32}$")
 
@@ -107,6 +115,18 @@ def catalog_routes(catalog: Catalog) -> APIRouter:
     @router.post("/tags")
     def save_tags(value: Tags) -> dict:
         return catalog.save_tags(value.id, value.tags)
+
+    @router.post("/save-album")
+    def save_album(value: SaveAlbum) -> dict:
+        return catalog.library.saver.prepare(value.ids, value.parent)
+
+    @router.post("/save-photo")
+    def save_photo(value: SavePhoto) -> dict:
+        return catalog.library.saver.move(value.id, value.batch)
+
+    @router.post("/correct-category")
+    def correct_category(value: Organize) -> dict:
+        return catalog.correct_category(value.id, value.label)
 
     @router.post("/organize")
     def organize(value: Organize) -> dict:
