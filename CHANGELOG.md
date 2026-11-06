@@ -1,3 +1,28 @@
+## 0.15.0 — November 6, 2026
+
+- Added Gemini (Google AI Studio, Gemini 3.1 Flash-Lite) and OpenAI (GPT-4.1 Mini) vision presets beside Groq. Model IDs remain editable.
+- Gemini base URLs normalize to its Chat Completions compatibility endpoint; incompatible protocol choices are rejected before sending credentials.
+- Switching preset origins clears any typed key. Saving settings is distinguished from successful provider verification.
+- Notes now use 128 tokens for tags, 256 for captions, and 384 for album ideas. Classification retains its 256-token cap, reduced-detail scene previews and completed-photo skip. The Gemini Flash-Lite preset requests minimal reasoning.
+- Provider authentication and quota still depend on the user's account. Tests use dummy keys and mocked HTTPS responses.
+
+## 0.14.0 — November 4, 2026
+
+- Mark As Similar permanently removes the lower estimated-quality imported copy, with a durable deletion journal; external sources are preserved. Quality uses resolution and normalized preview sharpness. Near ties retain a stable choice.
+- Categorised photos are excluded before batch pagination and never sent to the provider again. Classification immediately assigns an organised folder, preferring named people. Older completed records get folders on startup.
+- Others can be named; AI can discover one new broad subject category per image in the same request. Existing names and discovered categories persist and are backed up.
+- Compact classification prompts, 256-token output limits, low-detail scene requests where supported, and category analysis only on the first people-reference batch.
+- The top/left menu scrolls away with the page and can be collapsed. Collapse state is remembered.
+
+# 0.13.0 — Organised Files And Glass Navigation
+
+- Persist Already Categorised state, including empty results, and skip future AI requests.
+- Move managed imported copies into one chosen category folder. Prefer named people, and show a chooser for multiple matches.
+- Keep source files unchanged, refuse overwrites, recover interrupted moves, and preserve organised layout in backup/restore.
+- Fit images by default, with explicit 100% and 200% zoom controls.
+- Add top/left menu preference, hide only the menu scrollbar, add frosted glass, aurora motion and glowing button ripples.
+- Preserve reduced-motion support and normal fonts for names.
+
 # 0.12.0 — Albums And Sharp Photo Viewing
 
 - Add a persistent Trip/Album choice, collection badges, and assignment controls.

@@ -30,7 +30,7 @@ test('Groq base URLs normalize correctly and reference batches obey the three-im
     expect(
       body.messages[1].content.filter((c: { type: string }) => c.type === 'image_url'),
     ).toHaveLength(3);
-    expect(body.max_completion_tokens).toBe(1200);
+    expect(body.max_completion_tokens).toBe(256);
     expect(body.reasoning_effort).toBe('none');
   }
 });

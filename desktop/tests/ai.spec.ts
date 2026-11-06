@@ -30,12 +30,12 @@ test('provider validation and both wire formats have bounded text-only requests'
   });
   const body = makeBody(config, 'tags', 'A day at the beach');
   expect(body.messages[1]).toEqual({ role: 'user', content: 'A day at the beach' });
-  expect(body.max_tokens).toBe(1200);
+  expect(body.max_tokens).toBe(128);
   expect(body.stream).toBe(false);
   const responseBody = makeBody({ ...config, protocol: 'responses' }, 'album', 'Mountain trip');
   expect(responseBody.store).toBe(false);
   expect(responseBody.input).toBe('Mountain trip');
-  expect(responseBody.max_output_tokens).toBe(1200);
+  expect(responseBody.max_output_tokens).toBe(384);
   expect(extractText({ choices: [{ message: { content: 'Sunshine' } }] }, 'chat')).toBe('Sunshine');
   expect(
     extractText(
@@ -177,7 +177,7 @@ test('English-only UI, encrypted user key, consent, generation, errors, cancella
     app = await electron.launch(launch);
     page = await app.firstWindow();
     await page.getByRole('button', { name: /API key/ }).click();
-    await expect(page.getByText('Your provider is configured')).toBeVisible();
+    await expect(page.getByText('Provider Settings Saved')).toBeVisible();
     await expect(page.getByLabel('Your API key', { exact: true })).toHaveValue('');
     await page.getByRole('button', { name: 'Remove key' }).click();
     await expect(page.getByText('Key removed. AI is off.')).toBeVisible();

@@ -6,6 +6,7 @@ import { Icon } from './Icon';
 export interface PreferencesValue {
   theme: 'dark' | 'light';
   motion: boolean;
+  menuPosition: 'left' | 'top';
 }
 export function Preferences({
   open,
@@ -60,6 +61,19 @@ export function Preferences({
           checked={value.motion}
           onChange={(e) => onChange({ ...value, motion: e.target.checked })}
         />
+      </label>
+      <label className="setting">
+        <span>
+          Menu Position<small>Keep navigation at the top or on the left.</small>
+        </span>
+        <select
+          aria-label="Menu position"
+          value={value.menuPosition}
+          onChange={(e) => onChange({ ...value, menuPosition: e.target.value as 'top' | 'left' })}
+        >
+          <option value="top">Top</option>
+          <option value="left">Left</option>
+        </select>
       </label>
       <div className="setting">
         <span>Language</span>

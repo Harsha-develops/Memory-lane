@@ -5,10 +5,11 @@ import re
 import threading
 import uuid
 from collections import defaultdict
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from PIL import Image
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import Item, Photo, Setting, SimilarPair, Trip
@@ -23,6 +24,8 @@ def photo_dict(photo: Photo) -> dict:
     return {
         "tags": json.loads(photo.tags or "[]"),
         "personReference": photo.person_ref,
+        "categorized": bool(photo.categorized_at),
+        "organizedLabel": photo.organized_label,
         "id": photo.id,
         "name": photo.filename,
         "width": photo.width,
@@ -74,8 +77,17 @@ class Catalog:
         end: str | None = None,
         search: str = "",
         tag: str = "",
+        uncategorized: bool = False,
     ) -> dict:
-        conditions = []
+        conditions = [
+            Photo.id.not_in(
+                select(func.substr(Setting.key, 16)).where(
+                    Setting.key.startswith("pending_delete:")
+                )
+            )
+        ]
+        if uncategorized:
+            conditions.append(Photo.categorized_at == "")
         if trip == "unassigned":
             conditions.append(Photo.trip_id.is_(None))
         elif trip:
@@ -85,7 +97,15 @@ class Catalog:
         if end:
             conditions.append(Photo.captured_at < end + "T99")
         if tag:
-            conditions.append(Photo.tags.contains(json.dumps(tag.lower()), autoescape=True))
+            conditions.append(
+                or_(
+                    Photo.organized_label == tag.lower(),
+                    and_(
+                        Photo.organized_label == "",
+                        Photo.tags.contains(json.dumps(tag.lower()), autoescape=True),
+                    ),
+                )
+            )
         if search:
             conditions.append(Photo.filename.contains(search, autoescape=True))
         with self.library.db.session() as session:
@@ -140,12 +160,42 @@ class Catalog:
             photo = session.get(Photo, identifier)
             if not photo:
                 raise StorageError("This photo could not be found.")
+            if photo.categorized_at:
+                return {"tags": json.loads(photo.tags or "[]"), "alreadyCategorized": True}
+            photo.categorized_at = datetime.now(UTC).isoformat()
             previous = set(json.loads(photo.tags or "[]"))
             updated = sorted((previous - set(scope)) | set(tags))
             if len(updated) > 64:
                 raise StorageError("Too many categories for this photo.")
             photo.tags = json.dumps(updated)
-        return {"tags": updated}
+            names = self.category_names()
+            for tag in updated:
+                if not tag.startswith("person "):
+                    names.setdefault(tag, tag.title())
+            session.merge(Setting(key="category_names", value=json.dumps(names)))
+        organization = self.library.organizer.ensure_folder(identifier)
+        return {"tags": updated, **organization}
+
+    def category_names(self) -> dict[str, str]:
+        with self.library.db.session() as session:
+            item = session.get(Setting, "category_names")
+            return {"others": "Others", **(json.loads(item.value) if item else {})}
+
+    def rename_category(self, label: str, name: str) -> dict:
+        if not re.fullmatch(r"[a-z][a-z0-9 -]{0,39}", label) or label.startswith("person "):
+            raise StorageError("Use a short category label.")
+        name = name.strip()
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9 -]{0,39}", name):
+            raise StorageError("Use 1–40 English letters, numbers, spaces or hyphens.")
+        with self.library.lock, self.library.db.session.begin() as session:
+            names = self.category_names()
+            if label not in names and label not in {c["label"] for c in self.categories()}:
+                raise StorageError("This category could not be found.")
+            names[label] = name
+            session.merge(Setting(key="category_names", value=json.dumps(names)))
+        # Move each owned copy through the same recoverable move journal.
+        self.library.organizer.ensure_folders()
+        return {"ok": True}
 
     def person_names(self) -> dict[str, str]:
         with self.library.db.session() as session:
@@ -170,14 +220,22 @@ class Catalog:
         return {"ok": True}
 
     def albums(self) -> list[dict]:
-        names = self.person_names()
+        names = {**self.category_names(), **self.person_names()}
         result = []
         with self.library.db.session() as session:
             for category in self.categories():
                 label = category["label"]
                 cover = session.scalar(
                     select(Photo.id)
-                    .where(Photo.tags.contains(json.dumps(label), autoescape=True))
+                    .where(
+                        or_(
+                            Photo.organized_label == label,
+                            and_(
+                                Photo.organized_label == "",
+                                Photo.tags.contains(json.dumps(label), autoescape=True),
+                            ),
+                        )
+                    )
                     .order_by(Photo.captured_at.desc(), Photo.id)
                     .limit(1)
                 )
@@ -194,10 +252,12 @@ class Catalog:
     def categories(self) -> list[dict]:
         counts: dict[str, int] = defaultdict(int)
         with self.library.db.session() as session:
-            for value, count in session.execute(
-                select(Photo.tags, func.count(Photo.id)).group_by(Photo.tags)
+            for value, destination, count in session.execute(
+                select(Photo.tags, Photo.organized_label, func.count(Photo.id)).group_by(
+                    Photo.tags, Photo.organized_label
+                )
             ):
-                for tag in json.loads(value or "[]"):
+                for tag in [destination] if destination else json.loads(value or "[]"):
                     counts[tag] += count
         return [{"label": tag, "count": count} for tag, count in sorted(counts.items())]
 
@@ -424,7 +484,7 @@ class Catalog:
                     photo = session.get(Photo, identifier)
                     item = session.get(Item, identifier)
                     info = extract(
-                        owned(root / "originals", identifier + photo.extension),
+                        self.library.organizer.original(identifier),
                         item.modified_ms if item else None,
                         photo.imported_at,
                         self.privacy()["storeGps"],
@@ -532,6 +592,10 @@ class Catalog:
         return self.similar()
 
     def review_pair(self, identifier: str, decision: str) -> dict:
+        if decision == "similar":
+            return self.library.duplicates.remove_lower_quality(identifier)
+        if decision != "keep":
+            raise StorageError("Invalid similarity decision.")
         with self.library.lock, self.library.db.session.begin() as session:
             pair = session.get(SimilarPair, identifier)
             if not pair:

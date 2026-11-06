@@ -10,7 +10,7 @@ export interface AiStatus extends AiConfiguration {
 export type AiTask = 'caption' | 'tags' | 'album';
 export interface AiRequests {
   testVision: null;
-  analyze: { id: string; consent: true; people: boolean; categories: string[] };
+  analyze: { id: string; consent: true; people: boolean; categories: string[]; discover?: boolean };
   status: null;
   save: AiConfiguration & { key: string };
   remove: null;
@@ -19,7 +19,12 @@ export interface AiRequests {
 }
 export interface AiResponses {
   testVision: { tags: string[] };
-  analyze: { tags: string[] };
+  analyze: {
+    tags: string[];
+    alreadyCategorized?: boolean;
+    organizedLabel?: string;
+    organizationError?: string;
+  };
   status: AiStatus;
   save: AiStatus;
   remove: AiStatus;

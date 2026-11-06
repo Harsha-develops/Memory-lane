@@ -98,15 +98,25 @@ export function installAi(window: BrowserWindow, profile: string, backend: Backe
         testing
           ? { id: '0'.repeat(32), consent: true, people: false, categories: ['objects'] }
           : payload
-      ) as { id?: unknown; consent?: unknown; people?: unknown; categories?: unknown } | null;
+      ) as {
+        id?: unknown;
+        consent?: unknown;
+        people?: unknown;
+        categories?: unknown;
+        discover?: unknown;
+      } | null;
       if (
         !p ||
         p.consent !== true ||
         typeof p.people !== 'boolean' ||
         !Array.isArray(p.categories) ||
-        p.categories.length > categories.length ||
-        !p.categories.every((c) => typeof c === 'string' && categories.includes(c)) ||
-        (!p.categories.length && !p.people) ||
+        p.categories.length > 55 ||
+        !p.categories.every(
+          (c) =>
+            typeof c === 'string' && /^[a-z][a-z0-9 -]{0,39}$/.test(c) && !c.startsWith('person '),
+        ) ||
+        (!p.categories.length && !p.people && !p.discover) ||
+        (p.discover !== undefined && typeof p.discover !== 'boolean') ||
         typeof p.id !== 'string' ||
         !/^[a-f0-9]{32}$/.test(p.id)
       )
@@ -114,6 +124,13 @@ export function installAi(window: BrowserWindow, profile: string, backend: Backe
       const controller = new AbortController();
       active = controller;
       try {
+        if (!testing) {
+          const photo = (await backend.call('/catalog/detail', 'POST', { id: p.id })) as {
+            categorized?: boolean;
+            tags?: string[];
+          };
+          if (photo.categorized) return { tags: photo.tags ?? [], alreadyCategorized: true };
+        }
         const config = await load();
         if (!config) throw new Error('Save your own vision-capable provider and API key first.');
         if (
@@ -144,10 +161,16 @@ export function installAi(window: BrowserWindow, profile: string, backend: Backe
           inputs.push({ label: ref.label, image: await image(ref.id) });
         }
         if (controller.signal.aborted) throw new Error('AI request cancelled.');
+        const categoryNames = (await backend.call('/catalog/category-names', 'GET')) as Record<
+          string,
+          string
+        >;
         const selected = p.categories as string[];
+        if (selected.some((label) => !categories.includes(label) && !(label in categoryNames)))
+          throw new Error('Choose an existing category.');
         const batches = referenceBatches(config, inputs);
         const matched = new Set<string>();
-        for (const refs of batches) {
+        for (const [batchIndex, refs] of batches.entries()) {
           if (controller.signal.aborted) throw new Error('AI request cancelled.');
           const text = await generate(
             config,
@@ -155,13 +178,27 @@ export function installAi(window: BrowserWindow, profile: string, backend: Backe
             'tags',
             '',
             controller.signal,
-            visionBody(config, target, refs, selected),
+            visionBody(
+              config,
+              target,
+              refs,
+              batchIndex === 0 ? selected : [],
+              batchIndex === 0 && p.discover === true,
+              categoryNames,
+            ),
           );
           for (const tag of parseCategories(
             text,
             refs.map((r) => r.label),
+            selected,
+            batchIndex === 0 && p.discover === true,
           )) {
-            if (selected.includes(tag) || refs.some((r) => r.label === tag)) matched.add(tag);
+            if (
+              selected.includes(tag) ||
+              refs.some((r) => r.label === tag) ||
+              (batchIndex === 0 && p.discover && !tag.startsWith('person '))
+            )
+              matched.add(tag);
           }
         }
         if (controller.signal.aborted) throw new Error('AI request cancelled.');
@@ -169,7 +206,7 @@ export function installAi(window: BrowserWindow, profile: string, backend: Backe
         return await backend.call('/catalog/auto-categories', 'POST', {
           id: p.id,
           tags: [...matched],
-          scope: [...selected, ...inputs.map((r) => r.label)],
+          scope: [...new Set([...selected, ...inputs.map((r) => r.label), ...matched])],
         });
       } finally {
         active = null;

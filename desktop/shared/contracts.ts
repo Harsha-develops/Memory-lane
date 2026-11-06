@@ -10,6 +10,8 @@ export interface AppStatus {
   diagnosticCode: string | null;
 }
 export interface Photo {
+  categorized?: boolean;
+  organizedLabel?: string;
   tags?: string[];
   personReference?: string;
   id: string;

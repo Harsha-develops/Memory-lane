@@ -13,7 +13,9 @@ from app.archives import ArchiveTasks
 from app.catalog import Catalog
 from app.database import Database, Item, Job, Photo, Setting
 from app.decoders import EXTENSIONS, decode, save_preview
+from app.duplicates import Duplicates
 from app.metadata import difference_hash, extract
+from app.organizer import Organizer
 from app.storage import (
     MAX_BATCH,
     MAX_FILE,
@@ -50,8 +52,12 @@ class Library:
         self.display_lock = threading.Lock()
         self.thread: threading.Thread | None = None
         self.tasks = ArchiveTasks(self)
+        self.organizer = Organizer(self)
+        self.duplicates = Duplicates(self)
 
     def start(self) -> None:
+        self.organizer.recover_pending()
+        self.duplicates.recover()
         with self.db.session.begin() as session:
             for item in session.scalars(select(Item).where(Item.state.in_(ACTIVE))):
                 if (
@@ -281,7 +287,7 @@ class Library:
             root = self.library_root()
             if root is None:
                 raise StorageError("Reconnect the original-photo library to load a sharp preview.")
-            original = owned(root / "originals", identifier + suffix)
+            original = self.organizer.original(identifier)
             decoded = decode(original, suffix, full_resolution=True)
             try:
                 save_preview(decoded.image, target, 4096, quality=95)
@@ -299,6 +305,7 @@ class Library:
         return path
 
     def run(self) -> None:
+        self.organizer.ensure_folders()
         try:
             self.catalog.index_existing()
         except (OSError, StorageError, SQLAlchemyError):

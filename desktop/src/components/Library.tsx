@@ -291,8 +291,12 @@ export function Library({
         disabled={!total}
         onClick={() => {
           void window.thingSorted
-            .catalog('query', { ...filter, limit: 20 })
-            .then((result) => setReviewIds(result.photos.map((p) => p.id)))
+            .catalog('query', { ...filter, limit: 20, uncategorized: true })
+            .then((result) => {
+              setReviewIds(result.photos.map((p) => p.id));
+              if (!result.photos.length)
+                setError('All Photos In This View Are Already Categorised.');
+            })
             .catch(() => setError('Photos could not be loaded.'));
         }}
       >
@@ -310,7 +314,17 @@ export function Library({
           <button
             className="secondary-button"
             disabled={selected.size > 20}
-            onClick={() => setReviewIds([...selected])}
+            onClick={() => {
+              void Promise.all(
+                [...selected].map((id) => window.thingSorted.catalog('detail', { id })),
+              )
+                .then((photos) => {
+                  const pending = photos.filter((p) => !p.categorized).map((p) => p.id);
+                  setReviewIds(pending);
+                  if (!pending.length) setError('Selected Photos Are Already Categorised.');
+                })
+                .catch(() => setError('Photos Could Not Be Loaded.'));
+            }}
           >
             AI categorize selected (max 20)
           </button>

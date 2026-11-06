@@ -1,0 +1,324 @@
+.aurora-background {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.aurora-background i {
+  position: absolute;
+  width: 70vw;
+  height: 65vh;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.27;
+  background: radial-gradient(ellipse, #ad3558, transparent 68%);
+  animation: aurora-flow 24s ease-in-out infinite alternate;
+}
+.aurora-background i:nth-child(1) {
+  left: -18%;
+  top: -15%;
+}
+.aurora-background i:nth-child(2) {
+  right: -20%;
+  top: 25%;
+  background: radial-gradient(ellipse, #a65972, transparent 68%);
+  animation-delay: -8s;
+  animation-duration: 30s;
+}
+.aurora-background i:nth-child(3) {
+  left: 20%;
+  bottom: -25%;
+  background: radial-gradient(ellipse, #b3985d, transparent 65%);
+  opacity: 0.12;
+  animation-delay: -16s;
+}
+@keyframes aurora-flow {
+  from {
+    transform: translate3d(-5%, -8%, 0) rotate(-12deg) scale(1);
+  }
+  to {
+    transform: translate3d(20%, 15%, 0) rotate(18deg) scale(1.2);
+  }
+}
+.app-shell {
+  position: relative;
+  z-index: 1;
+}
+.sidebar,
+.topbar,
+.feature-card,
+.trip-card,
+.private-card,
+.foundation-status,
+.preferences,
+.photo-dialog,
+.trip-editor,
+.collection-filters,
+.ai-album,
+.selection-toolbar {
+  background: color-mix(in srgb, var(--panel) 76%, transparent);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
+  border-color: color-mix(in srgb, var(--gold) 28%, var(--line));
+  box-shadow:
+    inset 0 1px 0 #ffffff12,
+    0 12px 34px #09040924;
+}
+.sidebar {
+  background: color-mix(in srgb, var(--sidebar) 85%, transparent);
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+.preferences,
+.photo-dialog {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+}
+.photo-information {
+  background: color-mix(in srgb, var(--panel) 76%, transparent);
+}
+.hero {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--maroon) 55%, transparent),
+    color-mix(in srgb, var(--panel) 80%, transparent)
+  );
+  backdrop-filter: blur(20px);
+}
+button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+button:active:not(:disabled) {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--gold) 28%, transparent);
+}
+.button-ripple {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f3d69c60, #d98b9f28 45%, transparent 70%);
+  box-shadow: 0 0 16px #e4be8830;
+  animation: button-ripple 0.7s ease-out forwards;
+}
+@keyframes button-ripple {
+  from {
+    transform: scale(0.05);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.app-shell[data-menu-position='top'] {
+  display: block;
+}
+[data-menu-position='top'] .sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px 20px;
+  padding: 14px 26px;
+  border-right: 0;
+  border-bottom: 2px solid var(--line);
+  overflow: visible;
+}
+[data-menu-position='top'] .brand {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 25px;
+}
+[data-menu-position='top'] .brand-mark {
+  width: 44px;
+  height: 44px;
+}
+[data-menu-position='top'] .workspace-label,
+[data-menu-position='top'] .private-card,
+[data-menu-position='top'] .profile {
+  display: none;
+}
+[data-menu-position='top'] .sidebar nav {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-menu-position='top'] .sidebar nav .nav-item {
+  width: auto;
+  flex: 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+[data-menu-position='top'] .sidebar-bottom {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+[data-menu-position='top'] .sidebar-bottom .nav-item {
+  width: auto;
+  margin: 0;
+  white-space: nowrap;
+}
+[data-menu-position='top'] .ai-corner span {
+  margin-left: 8px;
+}
+[data-menu-position='top'] .topbar {
+  height: auto;
+  min-height: 52px;
+  padding-block: 10px;
+}
+[data-menu-position='top'] main {
+  max-width: 1600px;
+}
+.categorized-badge {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  padding: 4px 9px;
+  border: 1px solid var(--gold);
+  background: #291a25e8;
+  color: #f3ddb4;
+  border-radius: 20px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.categorized-state {
+  color: var(--gold);
+  font-weight: 600;
+}
+.folder-location {
+  display: block;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+.category-results .field-label {
+  margin-block: 12px;
+}
+.category-results small {
+  display: block;
+  margin-top: 10px;
+}
+.viewer-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.viewer-zoom-controls button[aria-pressed='true'] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.zoom-image {
+  cursor: default;
+  display: grid;
+  place-items: center;
+}
+.zoomed .zoom-image {
+  cursor: default;
+}
+.zoom-image img {
+  max-width: min(100%, var(--image-width, 100%));
+  max-height: min(100%, var(--image-height, 100%));
+}
+@media (max-width: 1000px) {
+  [data-menu-position='top'] .sidebar {
+    padding-inline: 16px;
+    gap: 10px;
+  }
+  [data-menu-position='top'] .ai-corner span {
+    display: none;
+  }
+  [data-menu-position='top'] .sidebar-bottom .nav-item {
+    font-size: 14px;
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  [data-menu-position='top'] .sidebar nav .nav-item {
+    flex: 1 1 125px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aurora-background i,
+  .button-ripple {
+    animation: none !important;
+  }
+  .button-ripple {
+    display: none;
+  }
+}
+:root[data-motion='off'] .aurora-background i {
+  animation: none !important;
+}
+:root[data-motion='off'] .button-ripple {
+  display: none;
+}
+
+/* The menu belongs to the page: it scrolls away instead of following the viewer. */
+.app-shell .sidebar,
+[data-menu-position='top'] .sidebar {
+  position: relative;
+  top: auto;
+  align-self: start;
+}
+.menu-toggle {
+  align-self: start;
+  margin-bottom: 12px;
+}
+[data-menu-position='top'] .menu-toggle {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  justify-self: start;
+  margin: 0;
+}
+.app-shell[data-menu-collapsed='true'][data-menu-position='left'] {
+  grid-template-columns: 82px minmax(0, 1fr);
+}
+[data-menu-collapsed='true'] .sidebar > :not(.menu-toggle) {
+  display: none !important;
+}
+[data-menu-collapsed='true'] .sidebar {
+  height: auto;
+  min-height: 0;
+  padding: 14px;
+}
+[data-menu-collapsed='true'] .menu-toggle {
+  margin: 0;
+  grid-row: 1;
+}
+/* Compact control beside the top-menu tools, without adding an empty menu row. */
+[data-menu-position='top'] .sidebar {
+  grid-template-columns: auto minmax(0, 1fr) 42px;
+}
+[data-menu-position='top'] .menu-toggle {
+  grid-column: 3;
+  grid-row: 1;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font-size: 0;
+}
+[data-menu-position='top'] .menu-toggle::before {
+  content: '−';
+  font-size: 24px;
+}
+[data-menu-position='top'][data-menu-collapsed='true'] .menu-toggle {
+  grid-column: 1;
+}
+[data-menu-position='top'][data-menu-collapsed='true'] .menu-toggle::before {
+  content: '☰';
+}

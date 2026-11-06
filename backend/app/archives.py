@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import Item, Photo, Setting, Trip
 from app.decoders import EXTENSIONS, decode, save_preview
+from app.organizer import relative_item
 from app.storage import MAX_FILE, StorageError, check_space, owned, safe_local
 
 if TYPE_CHECKING:
@@ -36,6 +37,9 @@ class ArchivedTrip(Record):
 
 
 class ArchivedPhoto(Record):
+    categorized_at: str = Field(default="", max_length=40)
+    organized_label: str = Field(default="", max_length=40)
+    storage_path: str = Field(default="", max_length=250)
     tags: list[str] = Field(default_factory=list, max_length=64)
     person_ref: str = Field(default="", pattern=r"^(?:person [1-9][0-9]{0,5})?$")
 
@@ -75,6 +79,22 @@ class ArchivedPhoto(Record):
 
 
 class Archive(Record):
+    category_names: dict[str, str] = Field(default_factory=dict, max_length=1000)
+
+    @field_validator("category_names")
+    @classmethod
+    def valid_category_names(cls, value: dict[str, str]) -> dict[str, str]:
+        import re
+
+        if any(
+            not re.fullmatch(r"[a-z][a-z0-9 -]{0,39}", key)
+            or key.startswith("person ")
+            or not re.fullmatch(r"[A-Za-z][A-Za-z0-9 -]{0,39}", name)
+            for key, name in value.items()
+        ):
+            raise ValueError("Invalid category names")
+        return value
+
     person_names: dict[str, str] = Field(default_factory=dict, max_length=100000)
 
     @field_validator("person_names")
@@ -174,6 +194,10 @@ class ArchiveTasks:
                 .where(Item.state.in_({"pending", "receiving", "queued", "working"}))
                 .limit(1)
             )
+            if session.scalar(select(Setting.key).where(Setting.key.startswith("pending_delete:"))):
+                raise StorageError(
+                    "Reconnect the library and finish pending deletions before backing up."
+                )
             if active:
                 raise StorageError("Finish or cancel the current import first.")
         if self.library.catalog.scan_state == "running":
@@ -195,12 +219,16 @@ class ArchiveTasks:
             photos = []
             with self.library.db.session() as session:
                 for photo in session.scalars(select(Photo)):
-                    path = owned(source / "originals", photo.id + photo.extension)
+                    path = self.library.organizer.original(photo.id)
+                    session.refresh(photo)
                     photos.append(
                         ArchivedPhoto(
                             id=photo.id,
                             tags=json.loads(photo.tags or "[]"),
                             person_ref=photo.person_ref,
+                            categorized_at=photo.categorized_at,
+                            organized_label=photo.organized_label,
+                            storage_path=photo.storage_path,
                             filename=photo.filename,
                             extension=photo.extension,
                             sha256=photo.sha256,
@@ -227,7 +255,10 @@ class ArchiveTasks:
                     for t in session.scalars(select(Trip))
                 ]
             archive = Archive(
-                photos=photos, trips=trips, person_names=self.library.catalog.person_names()
+                photos=photos,
+                trips=trips,
+                person_names=self.library.catalog.person_names(),
+                category_names=self.library.catalog.category_names(),
             )
             destination = destination_parent / (
                 "thing sorted backup-"
@@ -355,8 +386,17 @@ class ArchiveTasks:
             for index, photo in enumerate(archive.photos):
                 self._checkpoint()
                 name = photo.id + photo.extension
-                target = owned(destination / "originals", name)
-                self._copy(owned(source / "originals", name), target, photo)
+                if job["kind"] == "backup":
+                    target = owned(destination / "originals", name)
+                    source_photo = self.library.organizer.original(photo.id)
+                else:
+                    if photo.storage_path and not photo.storage_path.endswith("--" + name):
+                        raise StorageError("Invalid organized photo name in backup.")
+                    target = relative_item(
+                        destination, photo.storage_path or "originals/" + name, create=True
+                    )
+                    source_photo = owned(source / "originals", name)
+                self._copy(source_photo, target, photo)
                 if job["kind"] == "restore":
                     decoded = decode(target, photo.extension)
                     with closing(decoded.image):
@@ -368,6 +408,9 @@ class ArchiveTasks:
                         )
                         data = photo.model_dump(exclude={"size"})
                         data["tags"] = json.dumps(photo.tags)
+                        data["categorized_at"] = photo.categorized_at or (
+                            "legacy" if photo.tags else ""
+                        )
                         data.update(
                             width=decoded.width,
                             height=decoded.height,
@@ -394,6 +437,9 @@ class ArchiveTasks:
                             session.add(Trip(**trip.model_dump()))
                         session.merge(
                             Setting(key="person_names", value=json.dumps(archive.person_names))
+                        )
+                        session.merge(
+                            Setting(key="category_names", value=json.dumps(archive.category_names))
                         )
                         session.merge(Setting(key="library_root", value=str(destination)))
                         session.merge(Setting(key="last_restore", value=job["id"]))

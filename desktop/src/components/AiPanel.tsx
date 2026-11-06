@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AiStatus, AiTask } from '../../shared/ai';
 import { Icon } from './Icon';
+import { providerPresets, sameProvider } from '../../shared/providers';
 
 export function AiPanel({ onClose }: { onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -115,33 +116,44 @@ export function AiPanel({ onClose }: { onClose: () => void }) {
         </button>
       </div>
       <p className="muted">
-        Optional AI with your own API key. No built-in key, subscription, or model from thing
-        sorted.
+        Optional AI with your own API key. No built-in key, subscription, or model from Memory Lane.
       </p>
       <div className="ai-state">
         {config.configured
-          ? 'Your provider is configured'
+          ? 'Provider Settings Saved'
           : 'AI is off — add your own key to begin'}
       </div>
       <fieldset disabled={busy || running} className="ai-form">
         <legend>API key & provider</legend>
-        <button
-          className="secondary-button"
-          onClick={() => {
-            setConfig({
-              ...config,
-              endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-              protocol: 'chat',
-              model: 'qwen/qwen3.8-27b',
-            });
-            setDirty(true);
-          }}
-        >
-          Use Groq vision settings
-        </button>
+        <div className="settings-actions">
+          {providerPresets.map(({ name, configuration }) => (
+            <button
+              key={name}
+              className="secondary-button"
+              onClick={() => {
+                if (!sameProvider(config.endpoint, configuration.endpoint)) setKey('');
+                setConfig({ ...config, ...configuration });
+                setDirty(true);
+                setConsent(false);
+                setResult('');
+                setMessage(
+                  `${name} Settings Selected. Enter This Provider's Key And Save. No Request Has Been Sent.`,
+                );
+              }}
+            >
+              Use {name} vision settings
+            </button>
+          ))}
+        </div>
         <p className="muted">
-          For Groq photos, use a vision model. GPT-OSS 20B is text-only. A base URL ending in /v1 is
-          expanded automatically.
+          Gemini uses your Google AI Studio key. OpenAI uses an OpenAI API key. Each key must match
+          its provider; presets do not send a request or verify access. You can edit the model ID.
+          Photo tools require a vision model.
+        </p>
+        <p className="viewer-note">
+          Token Saver: categorisation skips completed photos and caps replies at 256 tokens. Notes
+          use task-specific limits of 128–384 tokens. Gemini Flash-Lite uses minimal reasoning.
+          People references cost additional input tokens; actual billing depends on your provider.
         </p>
         <label>
           API format

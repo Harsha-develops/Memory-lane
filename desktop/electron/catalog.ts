@@ -27,6 +27,7 @@ const specs: Record<string, { path: string; method?: string; fields: Record<stri
   query: {
     path: '/query',
     fields: {
+      uncategorized: (v) => v === undefined || bool(v),
       offset: number(1000000),
       limit: number(200),
       trip: (v) => v === 'unassigned' || optionalId(v),
@@ -36,6 +37,12 @@ const specs: Record<string, { path: string; method?: string; fields: Record<stri
       tag: optionalString(40),
     },
   },
+  organize: {
+    path: '/organize',
+    fields: { id, label: (v) => typeof v === 'string' && /^[a-z0-9][a-z0-9 -]{0,39}$/.test(v) },
+  },
+  categoryNames: { path: '/category-names', method: 'GET', fields: {} },
+  renameCategory: { path: '/category-name', fields: { label: string(40), name: string(40) } },
   albums: { path: '/albums', method: 'GET', fields: {} },
   personNames: { path: '/person-names', method: 'GET', fields: {} },
   renamePerson: {

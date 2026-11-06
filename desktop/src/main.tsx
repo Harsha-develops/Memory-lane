@@ -5,6 +5,7 @@ import './styles.css';
 import './styles-premium.css';
 import './styles-collections.css';
 import './styles-memory-lane.css';
+import './styles-glass-navigation.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

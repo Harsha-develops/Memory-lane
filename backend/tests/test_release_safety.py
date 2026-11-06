@@ -32,7 +32,7 @@ def test_m2_catalog_upgrade_preserves_records_and_previous_schema(tmp_path):
         )
         assert (
             connection.execute("SELECT version_num FROM alembic_version").fetchone()[0]
-            == "0004_collection_kind"
+            == "0005_organization"
         )
     backups = list((tmp_path / "backups").glob("*.db"))
     assert backups

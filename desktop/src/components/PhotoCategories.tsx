@@ -6,6 +6,8 @@ export function PhotoCategories({ id, onChanged }: { id: string; onChanged: () =
   const [name, setName] = useState('');
   const [names, setNames] = useState<Record<string, string>>({});
   const [review, setReview] = useState(false);
+  const [categorized, setCategorized] = useState(false);
+  const [organizedLabel, setOrganizedLabel] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
@@ -14,10 +16,14 @@ export function PhotoCategories({ id, onChanged }: { id: string; onChanged: () =
     void Promise.all([
       window.thingSorted.catalog('detail', { id }),
       window.thingSorted.catalog('personNames', {}),
+      window.thingSorted.catalog('categoryNames', {}),
     ])
-      .then(([p, labels]) => {
+      .then(([p, personLabels, categoryLabels]) => {
+        const labels = { ...categoryLabels, ...personLabels };
         if (live) {
           setTags(p.tags ?? []);
+          setCategorized(!!p.categorized);
+          setOrganizedLabel(p.organizedLabel ?? '');
           setReference(p.personReference ?? '');
           setName(labels[p.personReference ?? ''] ?? '');
           setNames(labels);
@@ -63,9 +69,17 @@ export function PhotoCategories({ id, onChanged }: { id: string; onChanged: () =
   return (
     <section className="photo-categories">
       <h3>AI albums</h3>
+      {categorized && (
+        <p className="categorized-state">
+          Already Categorised
+          {organizedLabel
+            ? ` · Stored In ${names[organizedLabel] ?? organizedLabel}`
+            : ' · Choose A Folder'}
+        </p>
+      )}
       <p>{tags.length ? tags.map((t) => names[t] ?? t).join(' · ') : 'Not classified yet'}</p>
       <button className="secondary-button" onClick={() => setReview(true)}>
-        AI categorize photo
+        {categorized ? 'Choose Destination Folder' : 'AI categorize photo'}
       </button>
       <h4>Name this person</h4>
       <p className="viewer-note">

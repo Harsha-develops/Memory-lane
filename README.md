@@ -1,4 +1,16 @@
+## Memory Lane 0.15.0
+
+Similarity review now permanently deletes one **imported copy** when you select **Mark As Similar & Delete One**. It estimates quality from resolution and preview sharpness; close scores retain one deterministically. Keep Both remains available. External source files are untouched. Previously exported backups are independent snapshots and retain their contents.
+
+Categorisation skips completed photos before selecting a batch and sends no repeat AI request. Every result is moved into an organised managed folder, with named people preferred and the destination changeable. Offline drives or move errors keep the categorised state and report the failure; reconnect and restart to retry outstanding folder organisation. Others is renameable, and optional AI discovery creates a new subject category in the existing request. Classification uses compact previews/prompts and caps replies at 256 tokens; provider billing varies and people references add input tokens.
+
+The menu scrolls away with the page in both Top and Left layouts. Collapse/Expand Menu remembers its state.
+
 # Memory Lane
+
+Previous release **0.13.0** marked completed photos as Already Categorised and skips further provider calls. Single-match imported copies move into category folders; multiple matches have a destination chooser that prefers a named person. Moves change only managed copies, preserve source files, use recoverable journals, and retain their layout in backups. One chosen category section represents each organised photo.
+
+The menu defaults to Top and can be moved to Left in Preferences. Glass surfaces, aurora motion, and glowing button ripples respect motion settings. Photos open fitted to the window, with explicit 100% and 200% controls.
 
 Version 0.12.0 adds a Trip/Album selector for manual collections, normal Athiti typography for names, and sharp local previews up to 4,096 pixels with native-pixel zoom. Existing imported photos receive the improved preview when opened; originals stay unchanged. Manual collections share the existing single-collection assignment, while AI category albums can overlap.
 
@@ -12,7 +24,7 @@ A private Windows photo application for personal use. Version **0.12.0** include
 
 ## Open the application
 
-Run `release\Memory-Lane-0.12.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
+Run `release\Memory-Lane-0.15.0-windows-x64-setup.exe`, then open **Memory Lane** from the Start menu. The installer is per-user and includes Electron, Python, and the image decoders. A separate Python or Node installation is not needed to run it. It is unsigned; Windows may identify the publisher as unknown. Do not disable Windows security protections.
 
 The source project is `D:\projects\Things Sorted`. **Start Memory Lane.cmd** remains the developer launcher. It uses the project's development dependencies. The standalone application is in `release\win-unpacked\Memory Lane.exe` with its accompanying folders; do not copy that executable alone.
 
@@ -173,3 +185,11 @@ For Groq photos, open **API key**, choose **Use Groq vision settings**, then **S
 **Test vision connection (uses API credits)** sends a fixed synthetic sample, not a user photo. It verifies the route/model/image response format. There are no live connection tests at app startup or while saving credentials. The test uses the user's provider credits when invoked; development tests use mocked responses and dummy keys.
 
 References checked November 1, 2026: https://console.groq.com/docs/vision and https://console.groq.com/docs/model/openai/gpt-oss-20b
+
+## Provider Presets (0.15.0)
+
+Use Groq Vision Settings, Use Gemini Vision Settings, or Use OpenAI Vision Settings in the API key panel. Gemini uses a Google AI Studio key with `gemini-3.1-flash-lite` through `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`. OpenAI uses an OpenAI API key with `gpt-4.1-mini`. Models remain editable. A saved configuration does not verify authentication, model access, quota, or billing; use Test Vision Connection explicitly to make a billable test request.
+
+Preset changes clear typed credentials when the destination origin changes. Existing encrypted credentials are reused only for the same provider origin. No built-in key is supplied. Notes have output limits of 128 tokens for tags, 256 for captions, and 384 for album ideas. Photo classification retains its 256-token limit and skips categorised photos; Gemini Flash-Lite requests minimal reasoning. Limits are ceilings, not promised billing reductions. Tests use dummy keys and mocked provider responses, not live accounts.
+
+Protocol references: [Google Gemini compatibility](https://ai.google.dev/gemini-api/docs/openai), [OpenAI GPT-4.1 Mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini).

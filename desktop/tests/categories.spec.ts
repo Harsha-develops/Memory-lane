@@ -26,6 +26,11 @@ test('vision payloads separate target and references; unknown and invented perso
     [],
   );
   expect(response.store).toBe(false);
+  expect(response.max_output_tokens).toBe(256);
+  expect(response.input[0].content[1].detail).toBe('low');
+  expect(parseCategories('["pottery"]', [], ['others'], true)).toEqual(['pottery']);
+  expect(() => parseCategories('["person nine"]', [], ['others'], true)).toThrow();
+  expect(() => parseCategories('["pottery","jewellery"]', [], ['others'], true)).toThrow();
   expect(response.input[0].content[1].type).toBe('input_image');
   expect(parseCategories('["food","sunlight","backlit"]', [])).toEqual([
     'food',
@@ -121,7 +126,9 @@ test('photo preview analysis, person references, review, category filters and re
               'data',
               Buffer.from(
                 JSON.stringify({
-                  choices: [{ message: { content: '["portrait","backlit","person 1"]' } }],
+                  choices: [
+                    { message: { content: '["portrait","backlit","person 1","pottery"]' } },
+                  ],
                 }),
               ),
             );
@@ -138,17 +145,52 @@ test('photo preview analysis, person references, review, category filters and re
     await page.getByRole('button', { name: 'Name person & use reference' }).click();
     await expect(page.getByRole('button', { name: 'Save person name' })).toBeVisible();
     await page.getByRole('button', { name: 'AI categorize photo', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Classify & create albums' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Classify & Organise' })).toBeDisabled();
+    await page.getByLabel('Name For Others', { exact: true }).fill('Other Moments');
+    await page.getByRole('button', { name: 'Save Category Name' }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(() => window.thingSorted.catalog('categoryNames', {}).then((v) => v.others)),
+      )
+      .toBe('Other Moments');
     await page.getByRole('checkbox', { name: /Also sort into my named people/ }).check();
-    await page.getByRole('checkbox', { name: /Send these selected previews/ }).check();
-    await page.getByRole('button', { name: 'Classify & create albums' }).click();
-    await expect(page.getByText('Added to matching albums', { exact: true })).toBeVisible();
+    await page.getByRole('checkbox', { name: /Send uncategorised previews/ }).check();
+    await page.getByRole('button', { name: 'Classify & Organise' }).click();
+    await expect(page.getByText('Categorised', { exact: true })).toBeVisible();
+    await expect(page.getByLabel(/Destination For/)).toHaveValue('person 1');
+    await expect(page.getByRole('button', { name: 'Organised', exact: true })).toBeDisabled();
     const photo = (await page.evaluate(() => window.thingSorted.catalog('query', {}))).photos[0]!;
-    expect(photo.tags).toEqual(['backlit', 'person 1', 'portrait']); // AI commits directly into matching albums.
+    expect(photo.tags).toEqual(['backlit', 'person 1', 'portrait', 'pottery']);
+    expect(
+      (await page.evaluate(() => window.thingSorted.catalog('categoryNames', {}))).pottery,
+    ).toBe('Pottery'); // AI commits directly into matching albums.
     const payloads = await app.evaluate(
       () => (globalThis as unknown as { visionTest: { calls: unknown[] } }).visionTest.calls,
     );
     expect(payloads).toHaveLength(1);
+    expect((payloads[0] as { max_tokens: number }).max_tokens).toBe(256);
+    expect(
+      (await page.evaluate(() => window.thingSorted.catalog('query', { uncategorized: true })))
+        .total,
+    ).toBe(0);
+    expect(
+      await page.evaluate(
+        (id) =>
+          window.thingSorted.ai('analyze', {
+            id,
+            consent: true,
+            people: true,
+            categories: ['portrait'],
+          }),
+        photo.id,
+      ),
+    ).toMatchObject({ alreadyCategorized: true });
+    expect(
+      await app.evaluate(
+        () =>
+          (globalThis as unknown as { visionTest: { calls: unknown[] } }).visionTest.calls.length,
+      ),
+    ).toBe(1);
     const payload = payloads[0] as { messages: { content: unknown }[] };
     const content = payload.messages[1]!.content as { type: string; image_url?: { url: string } }[];
     expect(content.filter((c) => c.type === 'image_url')).toHaveLength(2);
@@ -178,16 +220,16 @@ test('photo preview analysis, person references, review, category filters and re
     await page.getByRole('button', { name: 'Close photo preview' }).click();
     await expect(
       page.getByRole('combobox', { name: 'Filter by category' }).locator('option'),
-    ).toHaveCount(4);
-    await page.getByRole('combobox', { name: 'Filter by category' }).selectOption('backlit');
+    ).toHaveCount(2);
+    await page.getByRole('combobox', { name: 'Filter by category' }).selectOption('person 1');
     await expect(page.locator('.library-subtitle')).toContainText('1 photo');
     await page.getByRole('button', { name: 'Trips & albums', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Open album Alex', exact: true })).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: 'Open album Backlit', exact: true }),
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Open album Backlit', exact: true }).click();
-    await expect(page.getByRole('combobox', { name: 'Filter by category' })).toHaveValue('backlit');
+    await expect(page.getByRole('button', { name: 'Open album Alex', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Open album Alex', exact: true }).click();
+    await expect(page.getByRole('combobox', { name: 'Filter by category' })).toHaveValue(
+      'person 1',
+    );
     await page.getByRole('button', { name: 'All photos', exact: true }).click();
     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toHaveValue('');
     expect(await digest()).toBe(before);
@@ -200,7 +242,7 @@ test('photo preview analysis, person references, review, category filters and re
       })
       .toBe('ready');
     expect(
-      (await page.evaluate(() => window.thingSorted.catalog('query', { tag: 'backlit' }))).total,
+      (await page.evaluate(() => window.thingSorted.catalog('query', { tag: 'person 1' }))).total,
     ).toBe(1);
     expect(await page.evaluate(() => window.thingSorted.catalog('people', {}))).toEqual([
       { id: photo.id, label: 'person 1' },

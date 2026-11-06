@@ -1,6 +1,7 @@
 import type { Photo, PhotoPage } from './contracts';
 
 export interface PhotoFilter {
+  uncategorized?: boolean;
   offset?: number;
   limit?: number;
   trip?: string | null;
@@ -46,6 +47,9 @@ export interface SimilarData {
   pairs: { id: string; first: Photo; second: Photo; distance: number }[];
 }
 export interface CatalogRequests {
+  categoryNames: Record<string, never>;
+  renameCategory: { label: string; name: string };
+  organize: { id: string; label: string };
   albums: Record<string, never>;
   personNames: Record<string, never>;
   renamePerson: { label: string; name: string };
@@ -71,6 +75,9 @@ export interface CatalogRequests {
   reviewSimilar: { id: string; decision: 'keep' | 'similar' };
 }
 export interface CatalogResponses {
+  categoryNames: Record<string, string>;
+  renameCategory: { ok: boolean };
+  organize: { label: string; folder: string; moved: boolean };
   albums: { label: string; title: string; count: number; coverPhotoId: string | null }[];
   personNames: Record<string, string>;
   renamePerson: { ok: boolean };
@@ -93,5 +100,5 @@ export interface CatalogResponses {
   forgetLocations: Privacy;
   similar: SimilarData;
   scanSimilar: SimilarData;
-  reviewSimilar: { ok: boolean };
+  reviewSimilar: { ok: boolean; deletedName?: string; keptName?: string };
 }

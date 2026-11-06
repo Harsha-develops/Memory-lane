@@ -103,6 +103,7 @@ export function VirtualGallery({
             <div className="photo-image">
               <PhotoImage photo={photo} />
               <span className="photo-format">{photo.format}</span>
+              {photo.categorized && <span className="categorized-badge">Already Categorised</span>}
             </div>
             <div className="photo-caption">
               <strong>{photo.name}</strong>

@@ -67,6 +67,7 @@ export function PhotoViewer({
   const [trip, setTrip] = useState('');
   const [error, setError] = useState('');
   const [zoom, setZoom] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
     if (!photo) {
@@ -85,6 +86,7 @@ export function PhotoViewer({
     setDetail(null);
     setError('');
     setZoom(false);
+    setZoomScale(1);
     setImageSize({ width: 0, height: 0 });
     void Promise.all([
       window.thingSorted.catalog('detail', { id: photo.id }),
@@ -159,20 +161,49 @@ export function PhotoViewer({
               <Icon name="close" />
             </button>
           </div>
+          <div className="viewer-zoom-controls" role="group" aria-label="Photo zoom">
+            <button
+              className="secondary-button"
+              aria-pressed={!zoom}
+              onClick={() => setZoom(false)}
+            >
+              Fit To Window
+            </button>
+            <button
+              className="secondary-button"
+              aria-pressed={zoom && zoomScale === 1}
+              disabled={!imageSize.width}
+              onClick={() => {
+                setZoom(true);
+                setZoomScale(1);
+              }}
+            >
+              100% Detail
+            </button>
+            <button
+              className="secondary-button"
+              aria-pressed={zoom && zoomScale === 2}
+              disabled={!imageSize.width}
+              onClick={() => {
+                setZoom(true);
+                setZoomScale(2);
+              }}
+            >
+              200% Zoom
+            </button>
+          </div>
           <div className="viewer-columns">
             <div className={`large-photo ${zoom ? 'zoomed' : ''}`}>
-              <button
+              <div
                 className="zoom-image"
                 style={
                   zoom && imageSize.width
                     ? {
-                        width: imageSize.width / window.devicePixelRatio,
-                        height: imageSize.height / window.devicePixelRatio,
+                        width: (imageSize.width * zoomScale) / window.devicePixelRatio,
+                        height: (imageSize.height * zoomScale) / window.devicePixelRatio,
                       }
                     : undefined
                 }
-                onClick={() => setZoom(!zoom)}
-                aria-label={zoom ? tr('Fit photo to window') : tr('Enlarge photo')}
               >
                 <PhotoImage
                   key={photo.id}
@@ -180,7 +211,7 @@ export function PhotoViewer({
                   large
                   onSize={(width, height) => setImageSize({ width, height })}
                 />
-              </button>
+              </div>
             </div>
             <aside className="photo-information">
               <div className="eyebrow">{tr('The Details')}</div>
@@ -244,7 +275,9 @@ export function PhotoViewer({
               {tr('Previous')}
             </button>
             <span>
-              {tr('\u2190 \u2192 to browse \u00B7 click image to enlarge \u00B7 Esc to close')}
+              {tr(
+                '\u2190 \u2192 to browse \u00B7 use zoom controls for detail \u00B7 Esc to close',
+              )}
             </span>
             <button className="secondary-button" disabled={!next} onClick={next}>
               {tr('Next')}

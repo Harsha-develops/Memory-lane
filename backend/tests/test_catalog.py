@@ -169,23 +169,23 @@ def test_invalid_categories_never_replace_existing_labels(library):
         c.save_tags("f" * 32, ["food"])
 
 
-def test_ai_automatically_populates_multiple_albums_and_replaces_only_selected_scope(library):
+def test_ai_completion_preserves_results_and_skips_later_classification(library):
     c = library.catalog
     first = f"{1:032x}"
     c.auto_categories(first, ["food", "sunlight"], ["food", "sunlight", "portrait"])
     assert {a["title"] for a in c.albums()} == {"Food", "Sunlight"}
     assert all(a["count"] == 1 for a in c.albums())
     c.auto_categories(first, [], ["food"])
-    assert c.detail(first)["tags"] == ["sunlight"]
+    assert c.detail(first)["tags"] == ["food", "sunlight"]
     with pytest.raises(StorageError):
         c.auto_categories(first, ["portrait"], ["food"])
-    assert c.detail(first)["tags"] == ["sunlight"]
+    assert c.detail(first)["tags"] == ["food", "sunlight"]
     label = c.new_person(first)["label"]
     c.rename_person(label, "Alex")
     assert c.person_names() == {"person 1": "Alex"}
-    assert {a["title"] for a in c.albums()} == {"Alex", "Sunlight"}
+    assert {a["title"] for a in c.albums()} == {"Alex", "Food", "Sunlight"}
     c.rename_person(label, "Alexandra")
-    assert {a["title"] for a in c.albums()} == {"Alexandra", "Sunlight"}
+    assert {a["title"] for a in c.albums()} == {"Alexandra", "Food", "Sunlight"}
 
 
 def test_album_kind_survives_edit_and_reopen(library):

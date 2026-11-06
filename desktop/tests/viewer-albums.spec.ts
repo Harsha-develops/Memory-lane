@@ -52,7 +52,7 @@ test('album creation persists and floating viewer shows original-derived detail 
       .toBe(3000);
     await expect(image).toHaveAttribute('src', /\/display$/);
     await expect(page.locator('.image-quality-note')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Enlarge photo' }).click();
+    await page.getByRole('button', { name: '100% Detail' }).click();
     expect(
       await image.evaluate((node: HTMLImageElement) =>
         Math.abs(node.getBoundingClientRect().width * devicePixelRatio - node.naturalWidth),

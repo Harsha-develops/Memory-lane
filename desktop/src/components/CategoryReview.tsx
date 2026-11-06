@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { categories } from '../../shared/categories';
 import { Icon } from './Icon';
-type Row = { id: string; name: string; tags: string[]; error?: string };
+
+type Row = {
+  id: string;
+  name: string;
+  tags: string[];
+  destination: string;
+  already: boolean;
+  organized: string;
+  folder?: string;
+  error?: string;
+  moveError?: string;
+};
 export function CategoryReview({
   ids,
   onClose,
@@ -15,13 +26,21 @@ export function CategoryReview({
   const stop = useRef(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [moving, setMoving] = useState('');
   const [consent, setConsent] = useState(false);
   const [people, setPeople] = useState(false);
   const [referenceCount, setReferenceCount] = useState(0);
   const [names, setNames] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string[]>([...categories]);
+  const [available, setAvailable] = useState<string[]>([...categories]);
+  const [discover, setDiscover] = useState(true);
+  const [otherName, setOtherName] = useState('Others');
   const [provider, setProvider] = useState('');
   const [message, setMessage] = useState('');
+  function preferred(tags: string[], labels: Record<string, string>) {
+    return tags.find((tag) => /^person /.test(tag) && labels[tag]) ?? tags[0] ?? 'others';
+  }
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     dialog.current?.showModal();
@@ -30,15 +49,38 @@ export function CategoryReview({
       window.thingSorted.ai('status', null),
       window.thingSorted.catalog('people', {}),
       window.thingSorted.catalog('personNames', {}),
+      window.thingSorted.catalog('categoryNames', {}),
+      Promise.all(ids.map((id) => window.thingSorted.catalog('detail', { id }))),
     ])
-      .then(([status, refs, labels]) => {
+      .then(([status, refs, peopleNames, categoryNames, photos]) => {
+        const labels = { ...categoryNames, ...peopleNames };
         if (!live) return;
         setProvider(status.configured ? new URL(status.endpoint).origin : '');
         setReferenceCount(refs.length);
         setNames(labels);
+        setOtherName(categoryNames.others ?? 'Others');
+        const choices = [...new Set([...categories, ...Object.keys(categoryNames)])];
+        setAvailable(choices);
+        setSelected(choices.slice(0, 55));
+        setRows(
+          photos
+            .filter((p) => p.categorized)
+            .map((p) => ({
+              id: p.id,
+              name: p.name,
+              tags: p.tags ?? [],
+              destination: p.organizedLabel || preferred(p.tags ?? [], labels),
+              already: true,
+              organized: p.organizedLabel ?? '',
+            })),
+        );
       })
       .catch(() => {
-        if (live) setMessage('Provider settings could not be loaded.');
+        if (live)
+          setMessage('Photo or provider settings could not be loaded. Reopen this panel to retry.');
+      })
+      .finally(() => {
+        if (live) setLoading(false);
       });
     return () => {
       live = false;
@@ -47,10 +89,33 @@ export function CategoryReview({
       opener?.focus();
     };
   }, []);
+  const done = rows.filter((r) => !r.error).length;
+  function update(row: Row) {
+    setRows((old) => [...old.filter((r) => r.id !== row.id), row]);
+  }
   function changed() {
     setConsent(false);
-    setRows([]);
     setMessage('');
+  }
+  function errorText(error: unknown) {
+    return error instanceof Error
+      ? error.message.replace(/^Error invoking remote method '[^']+': Error: /, '')
+      : 'Please try again.';
+  }
+  async function movePhoto(row: Row) {
+    setMoving(row.id);
+    try {
+      const result = await window.thingSorted.catalog('organize', {
+        id: row.id,
+        label: row.destination,
+      });
+      update({ ...row, organized: result.label, folder: result.folder, moveError: undefined });
+      onChanged();
+    } catch (error) {
+      update({ ...row, moveError: errorText(error) });
+    } finally {
+      setMoving('');
+    }
   }
   async function analyze() {
     stop.current = false;
@@ -65,22 +130,40 @@ export function CategoryReview({
         const photo = await window.thingSorted.catalog('detail', { id });
         name = photo.name;
         if (stop.current) break;
-        const result = await window.thingSorted.ai('analyze', {
+        const result = photo.categorized
+          ? { tags: photo.tags ?? [], alreadyCategorized: true }
+          : await window.thingSorted.ai('analyze', {
+              id,
+              consent: true,
+              people,
+              categories: selected,
+              discover,
+            });
+        const row: Row = {
           id,
-          consent: true,
-          people,
-          categories: selected,
-        });
-        setRows((old) => [...old.filter((r) => r.id !== id), { id, name, tags: result.tags }]);
+          name,
+          tags: result.tags,
+          destination:
+            result.organizedLabel || photo.organizedLabel || preferred(result.tags, names),
+          already: !!result.alreadyCategorized,
+          organized: result.organizedLabel ?? photo.organizedLabel ?? '',
+          moveError: result.organizationError,
+        };
+        update(row);
         onChanged();
+        if (!row.organized && row.tags.length <= 1 && !stop.current) await movePhoto(row);
       } catch (error) {
-        const text =
-          error instanceof Error
-            ? error.message.replace(/^Error invoking remote method '[^']+': Error: /, '')
-            : 'Classification failed.';
-        setRows((old) => [...old.filter((r) => r.id !== id), { id, name, tags: [], error: text }]);
+        update({
+          id,
+          name,
+          tags: [],
+          destination: '',
+          already: false,
+          organized: '',
+          error: errorText(error),
+        });
         setMessage(
-          'Sorting stopped. Completed photos are already in their albums. Check API key settings before continuing.',
+          'Classification stopped. Completed photos stay categorised and will be skipped next time.',
         );
         break;
       }
@@ -88,7 +171,6 @@ export function CategoryReview({
     setBusy(false);
     setConsent(false);
   }
-  const done = rows.filter((r) => !r.error).length;
   return (
     <dialog
       ref={dialog}
@@ -102,27 +184,75 @@ export function CategoryReview({
     >
       <div className="dialog-heading">
         <div>
-          <div className="eyebrow">Choose Categories. We Sort.</div>
-          <h2 id="categorize-title">AI album sorting.</h2>
+          <div className="eyebrow">Categorise Once. Organise With Care.</div>
+          <h2 id="categorize-title">Categorise & Organise</h2>
         </div>
         <button className="icon-button" aria-label="Close categorization" onClick={onClose}>
           <Icon name="close" />
         </button>
       </div>
       <p className="muted">
-        Choose the categories you want. AI classifies each photo and adds it to every matching album
-        automatically. No manual labels or save step.
+        Already categorised photos are skipped. Imported copies move into folders inside your Memory
+        Lane library; your source files stay untouched. Every result gets a folder automatically.
+        For multiple matches, you can change the destination below—named people are preferred.
       </p>
       <div className="ai-state">
-        Selected photos: {ids.length} · {provider || 'Set up your API key in the sidebar first'}
+        Selected: {ids.length} · Already categorised: {rows.filter((r) => r.already).length} ·{' '}
+        {provider || 'Add your API key in the menu to classify new photos'}
       </div>
-      <fieldset className="category-choices" disabled={busy}>
-        <legend>Albums to sort into</legend>
+      <div className="settings-actions">
+        <label className="field-label">
+          Name For Others
+          <input
+            value={otherName}
+            maxLength={40}
+            disabled={busy}
+            onChange={(e) => setOtherName(e.target.value)}
+          />
+        </label>
+        <button
+          className="secondary-button"
+          disabled={busy || !otherName.trim()}
+          onClick={() => {
+            setBusy(true);
+            void window.thingSorted
+              .catalog('renameCategory', { label: 'others', name: otherName })
+              .then(() => {
+                setNames((old) => ({ ...old, others: otherName.trim() }));
+                changed();
+                setMessage('Category Name Saved.');
+                onChanged();
+              })
+              .catch((error) => setMessage(errorText(error)))
+              .finally(() => setBusy(false));
+          }}
+        >
+          Save Category Name
+        </button>
+      </div>
+      <label className="ai-consent">
+        <input
+          type="checkbox"
+          checked={discover}
+          disabled={busy}
+          onChange={(e) => {
+            setDiscover(e.target.checked);
+            changed();
+          }}
+        />
+        Let AI Create A New Subject Category When Needed
+      </label>
+      <p className="viewer-note">
+        Token Saver: compact previews, short JSON replies, and no repeat analysis. People matching
+        sends extra reference images.
+      </p>
+      <fieldset className="category-choices" disabled={busy || loading}>
+        <legend>Categories To Recognise (Up To 55)</legend>
         <div className="settings-actions">
           <button
             className="text-button"
             onClick={() => {
-              setSelected([...categories]);
+              setSelected(available.slice(0, 55));
               changed();
             }}
           >
@@ -139,11 +269,12 @@ export function CategoryReview({
           </button>
         </div>
         <div className="category-choice-grid">
-          {categories.map((label) => (
+          {available.map((label) => (
             <label key={label}>
               <input
                 type="checkbox"
                 checked={selected.includes(label)}
+                disabled={!selected.includes(label) && selected.length >= 55}
                 onChange={(e) => {
                   setSelected((old) =>
                     e.target.checked ? [...old, label] : old.filter((c) => c !== label),
@@ -151,7 +282,7 @@ export function CategoryReview({
                   changed();
                 }}
               />
-              {label}
+              {names[label] ?? label}
             </label>
           ))}
         </div>
@@ -169,36 +300,36 @@ export function CategoryReview({
         Also sort into my named people albums ({referenceCount} references)
       </label>
       <p className="viewer-note">
-        Name a person from a clear single-person photo in the viewer. AI uses that reference for
-        matching; uncertain matches can be missed. Names stay on your computer. You can rename an
-        existing person there.
-      </p>
-      <p className="viewer-note">
-        Resized previews go to your vision provider. Originals, filenames, GPS and EXIF are not
-        attached. Image content itself may reveal people or places. Person comparisons may use
-        several requests per photo; Groq receives at most two references with each target. Provider
-        charges and data policies apply.
+        Names stay on your computer. Your provider receives resized previews and optional person
+        references, without filenames, GPS or EXIF. Image content may reveal people or places;
+        provider charges and data policies apply.
       </p>
       <label className="ai-consent">
         <input
           type="checkbox"
-          disabled={busy}
+          disabled={busy || done === ids.length}
           checked={consent}
           onChange={(e) => setConsent(e.target.checked)}
         />
-        Send these selected previews{people ? ' and person references' : ''} and sort into albums
-        automatically
+        Send uncategorised previews{people ? ' and person references' : ''} to my provider and
+        organise imported copies
       </label>
       <div className="settings-actions">
         <button
           className="primary-button"
           disabled={
-            busy || !consent || !provider || (!selected.length && !people) || done === ids.length
+            busy ||
+            !!moving ||
+            loading ||
+            !consent ||
+            !provider ||
+            (!selected.length && !people && !discover) ||
+            done === ids.length
           }
           onClick={() => void analyze()}
         >
           <Icon name="spark" />
-          {done ? 'Continue sorting' : 'Classify & create albums'}
+          Classify & Organise
         </button>
         {busy && (
           <button
@@ -206,7 +337,6 @@ export function CategoryReview({
             onClick={() => {
               stop.current = true;
               void window.thingSorted.ai('cancel', null).catch(() => {});
-              setMessage('Stopping. Completed photos stay organized.');
             }}
           >
             Stop
@@ -214,7 +344,9 @@ export function CategoryReview({
         )}
       </div>
       <p role="status">
-        {done} / {ids.length} sorted{busy ? ' · Working…' : ''}
+        {loading
+          ? 'Checking categorisation…'
+          : `${done} / ${ids.length} categorised${busy ? ' · Working…' : ''}`}
       </p>
       <div className="category-results">
         {rows.map((row) => (
@@ -226,24 +358,51 @@ export function CategoryReview({
                 <p role="alert">{row.error}</p>
               ) : (
                 <>
-                  <p>
-                    {row.tags.length
-                      ? row.tags.map((t) => names[t] ?? t).join(' · ')
-                      : 'No confident match in the chosen categories.'}
+                  <p className="categorized-state">
+                    {row.already ? 'Already Categorised · Skipped' : 'Categorised'}
                   </p>
-                  <small>{row.tags.length ? 'Added to matching albums' : 'Left unassigned'}</small>
+                  <p className="person-name">
+                    {row.tags.map((t) => names[t] ?? t).join(' · ') ||
+                      'No confident match—stored in Others'}
+                  </p>
+                  <label className="field-label">
+                    Destination For {row.name}
+                    <select
+                      value={row.destination}
+                      disabled={busy || !!moving}
+                      onChange={(e) => update({ ...row, destination: e.target.value })}
+                    >
+                      {(row.tags.length ? row.tags : [row.organized || 'others']).map((tag) => (
+                        <option key={tag} value={tag}>
+                          {names[tag] ?? tag}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    className="secondary-button"
+                    disabled={busy || !!moving || row.organized === row.destination}
+                    onClick={() => void movePhoto(row)}
+                  >
+                    {moving === row.id
+                      ? 'Moving…'
+                      : row.organized === row.destination
+                        ? 'Organised'
+                        : 'Move Photo Here'}
+                  </button>
+                  {row.organized && (
+                    <small>
+                      Stored In {names[row.organized] ?? row.organized}
+                      {row.folder && <span className="folder-location">{row.folder}</span>}
+                    </small>
+                  )}
+                  {row.moveError && <p role="alert">{row.moveError}</p>}
                 </>
               )}
             </div>
           </article>
         ))}
       </div>
-      {done > 0 && (
-        <p className="viewer-note">
-          Open Trips & albums to see the automatically organized albums. A photo can belong to
-          several albums; existing trips and original files stay unchanged.
-        </p>
-      )}
       {message && (
         <p className="inline-message" role="status">
           {message}

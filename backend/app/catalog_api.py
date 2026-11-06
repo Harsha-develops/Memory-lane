@@ -29,6 +29,7 @@ class Query(Dates):
     trip: str | None = Field(default=None, pattern=r"^(?:[0-9a-f]{32}|unassigned)$")
     search: str = Field(default="", max_length=100)
     tag: str = Field(default="", max_length=40)
+    uncategorized: bool = False
 
 
 class TripInput(Dates):
@@ -39,6 +40,10 @@ class TripInput(Dates):
 
 class Identifier(Strict):
     id: str = Field(pattern=r"^[0-9a-f]{32}$")
+
+
+class Organize(Identifier):
+    label: str = Field(pattern=r"^[a-z0-9][a-z0-9 -]{0,39}$")
 
 
 class Tags(Identifier):
@@ -52,6 +57,11 @@ class AutoCategories(Tags):
 class PersonName(Strict):
     label: str = Field(pattern=r"^person [1-9][0-9]{0,5}$")
     name: str = Field(min_length=1, max_length=80)
+
+
+class CategoryName(Strict):
+    label: str = Field(pattern=r"^[a-z][a-z0-9 -]{0,39}$")
+    name: str = Field(min_length=1, max_length=40)
 
 
 class Move(Strict):
@@ -98,9 +108,21 @@ def catalog_routes(catalog: Catalog) -> APIRouter:
     def save_tags(value: Tags) -> dict:
         return catalog.save_tags(value.id, value.tags)
 
+    @router.post("/organize")
+    def organize(value: Organize) -> dict:
+        return catalog.library.organizer.move(value.id, value.label)
+
     @router.post("/auto-categories")
     def auto_categories(value: AutoCategories) -> dict:
         return catalog.auto_categories(value.id, value.tags, value.scope)
+
+    @router.get("/category-names")
+    def category_names() -> dict:
+        return catalog.category_names()
+
+    @router.post("/category-name")
+    def category_name(value: CategoryName) -> dict:
+        return catalog.rename_category(value.label, value.name)
 
     @router.get("/albums")
     def albums() -> list[dict]:

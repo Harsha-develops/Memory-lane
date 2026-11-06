@@ -12,6 +12,7 @@ export function Similar() {
   });
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [message, setMessage] = useState('');
+  const [reviewing, setReviewing] = useState(false);
   async function refresh() {
     setData(await window.thingSorted.catalog('similar', {}));
   }
@@ -32,12 +33,19 @@ export function Similar() {
     }
   }
   async function review(id: string, decision: 'keep' | 'similar') {
+    setReviewing(true);
     try {
-      await window.thingSorted.catalog('reviewSimilar', { id, decision });
+      const result = await window.thingSorted.catalog('reviewSimilar', { id, decision });
       await refresh();
-      setMessage(tr('Decision saved. Both originals are kept.'));
-    } catch {
-      setMessage(tr('The decision could not be saved.'));
+      setMessage(
+        decision === 'keep'
+          ? 'Both Photos Kept.'
+          : `Deleted Imported Copy: ${result.deletedName}. Kept: ${result.keptName}. External Source Files Were Not Changed.`,
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The decision could not be saved.');
+    } finally {
+      setReviewing(false);
     }
   }
   return (
@@ -62,7 +70,7 @@ export function Similar() {
         <strong>{tr('Optional. Local. Always your call.')}</strong>
         <p>
           {tr(
-            'This compares the light and dark patterns of small previews. Suggestions can be wrong, especially with simple scenes. Review up to 200 pairs at a time. Neither choice deletes a photo.',
+            'This compares the light and dark patterns of small previews. Suggestions can be wrong, especially with simple scenes. Review up to 200 pairs at a time. Mark As Similar permanently deletes the imported copy with lower estimated quality (resolution and preview sharpness); near ties keep one deterministically. External source files are never deleted.',
           )}
         </p>
       </div>
@@ -117,11 +125,19 @@ export function Similar() {
             </div>
             <div className="pair-actions">
               <span>{tr('Suggested match \u00B7 review both')}</span>
-              <button className="secondary-button" onClick={() => void review(pair.id, 'keep')}>
+              <button
+                className="secondary-button"
+                disabled={reviewing || data.state === 'running'}
+                onClick={() => void review(pair.id, 'keep')}
+              >
                 {tr('Keep both')}
               </button>
-              <button className="primary-button" onClick={() => void review(pair.id, 'similar')}>
-                {tr('Mark as similar')}
+              <button
+                className="primary-button"
+                disabled={reviewing || data.state === 'running'}
+                onClick={() => void review(pair.id, 'similar')}
+              >
+                {tr('Mark As Similar & Delete One')}
               </button>
             </div>
           </article>
